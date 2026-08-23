@@ -1,101 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { STORE_WHATSAPP } from "@/lib/config";
 
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const LAST_ORDER_KEY = "conveniencia24h.lastOrder.v1";
+const brl=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}); const LAST_ORDER_KEY='conveniencia24h.lastOrder.v2';
+const steps=[['received','Pedido recebido'],['picking','Em separação'],['ready','Pedido pronto'],['out_for_delivery','Saiu para entrega'],['delivered','Entregue']] as const;
+const paymentLabels:Record<string,string>={pix:'PIX',cash:'Dinheiro',card_on_delivery:'Cartão na entrega'};
 
-type StoredOrder = {
-  code: string;
-  createdAt: string;
-  customer: string;
-  customerWhatsapp: string;
-  address: {
-    cep: string;
-    street: string;
-    number: string;
-    complement: string;
-    neighborhood: string;
-    reference: string;
-  };
-  notes: string;
-  payment: string;
-  changeFor: string;
-  items: Array<{ id: number; name: string; price: number; qty: number }>;
-  subtotal: number;
-  delivery: number;
-  total: number;
-  whatsappUrl: string;
-  status: string;
-};
-
-const demoSteps = [
-  { label: "Pedido enviado pelo WhatsApp", done: true },
-  { label: "Aguardando confirmação da loja", done: false },
-  { label: "Separando", done: false },
-  { label: "Saiu para entrega", done: false },
-  { label: "Entregue", done: false },
-];
-
-export default function TrackingPage() {
-  const [order, setOrder] = useState<StoredOrder | null>(null);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LAST_ORDER_KEY);
-      if (stored) setOrder(JSON.parse(stored));
-    } catch {
-      localStorage.removeItem(LAST_ORDER_KEY);
-    }
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-[#1F2A44] px-4 py-8 text-white">
-      <main className="mx-auto max-w-xl">
-        <Link href="/" className="text-sm font-bold text-[#E8DCC8]">← Voltar para a loja</Link>
-        <div className="mt-5 rounded-[2rem] bg-white p-6 text-[#1F2A44] shadow-2xl">
-          <span className="rounded-full bg-[#E8DCC8] px-3 py-1 text-xs font-black text-[#1F2A44]">PEDIDO #{order?.code ?? "DEMO"}</span>
-          <h1 className="mt-4 text-3xl font-black">Pedido encaminhado para a loja. 📲</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">O WhatsApp foi aberto com todos os dados do pedido. Após a confirmação da loja, o acompanhamento automático entrará na próxima fase com o Supabase.</p>
-
-          <div className="mt-7 space-y-0">
-            {demoSteps.map((step, index) => (
-              <div key={step.label} className="grid grid-cols-[36px_1fr] gap-3">
-                <div className="flex flex-col items-center">
-                  <span className={`grid size-8 place-items-center rounded-full text-xs font-black ${step.done ? "bg-[#C6A75E] text-[#1F2A44]" : "bg-[#F4ECDF] text-slate-400"}`}>{step.done ? "✓" : index + 1}</span>
-                  {index < demoSteps.length - 1 && <span className={`h-10 w-0.5 ${step.done ? "bg-[#D6BB78]" : "bg-[#F4ECDF]"}`} />}
-                </div>
-                <p className={`pt-1.5 text-sm font-black ${step.done ? "text-[#1F2A44]" : "text-slate-400"}`}>{step.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {order && (
-            <>
-              <div className="mt-6 rounded-2xl bg-[#F4ECDF] p-4">
-                <div className="flex justify-between text-sm"><span className="text-slate-500">Cliente</span><strong>{order.customer}</strong></div>
-                <div className="mt-2 flex justify-between text-sm"><span className="text-slate-500">Total</span><strong>{brl.format(order.total)}</strong></div>
-                <div className="mt-2 flex justify-between text-sm"><span className="text-slate-500">Pagamento</span><strong className="text-[#A88A45]">{order.payment}</strong></div>
-              </div>
-
-              <div className="mt-4 rounded-2xl border border-[#E8DCC8] p-4">
-                <p className="text-xs font-black uppercase tracking-wider text-[#A88A45]">Itens</p>
-                <div className="mt-3 space-y-2">
-                  {order.items.map((item) => (
-                    <div key={item.id} className="flex justify-between gap-4 text-sm">
-                      <span>{item.qty}x {item.name}</span>
-                      <strong>{brl.format(item.price * item.qty)}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <a href={order.whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#25D366] text-sm font-black text-[#113A20]">ABRIR PEDIDO NO WHATSAPP</a>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
-  );
+type Order={order_number:number;status:string;payment_method:string;payment_status:string;subtotal:number;delivery_fee:number;total:number;customer_name:string;items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[];history:{status:string;created_at:string}[];cancellation_reason?:string};
+export default function TrackingPage(){const params=useParams<{token:string}>(); const [order,setOrder]=useState<Order|null>(null); const [local,setLocal]=useState<any>(null); const [message,setMessage]=useState('');
+ const load=useCallback(async()=>{try{const r=await fetch(`/api/orders/${params.token}`,{cache:'no-store'});if(!r.ok)throw new Error('not_remote');const d=await r.json();setOrder(d.order);setMessage('');}catch{try{const s=localStorage.getItem(LAST_ORDER_KEY);if(s){const parsed=JSON.parse(s);setLocal(parsed);if(parsed.fallback)setMessage('Este pedido foi enviado somente pelo WhatsApp porque o banco ainda não estava conectado.')}}catch{} }},[params.token]);
+ useEffect(()=>{void load();const t=setInterval(()=>void load(),8000);return()=>clearInterval(t)},[load]);
+ const currentIndex=useMemo(()=>order?steps.findIndex(([key])=>key===order.status):-1,[order]);
+ if(!order&&local?.fallback)return <div className="min-h-screen bg-[#1F2A44] px-4 py-8 text-white"><main className="mx-auto max-w-xl"><Link href="/" className="text-sm font-bold text-[#E8DCC8]">← Voltar</Link><div className="mt-5 rounded-[2rem] bg-white p-6 text-[#1F2A44]"><span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-900">PEDIDO WHATSAPP #{local.code}</span><h1 className="mt-4 text-3xl font-black">Pedido encaminhado à loja.</h1><p className="mt-2 text-sm text-slate-500">{message}</p><a href={local.whatsappUrl} target="_blank" className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#25D366] text-sm font-black">ABRIR WHATSAPP</a></div></main></div>;
+ return <div className="min-h-screen bg-[#1F2A44] px-4 py-8 text-white"><main className="mx-auto max-w-xl"><Link href="/" className="text-sm font-bold text-[#E8DCC8]">← Voltar para a loja</Link><div className="mt-5 rounded-[2rem] bg-white p-6 text-[#1F2A44] shadow-2xl">{order?<><div className="flex flex-wrap items-center justify-between gap-2"><span className="rounded-full bg-[#E8DCC8] px-3 py-1 text-xs font-black">PEDIDO #{String(order.order_number).padStart(6,'0')}</span><span className="text-xs font-bold text-slate-400">Atualiza automaticamente</span></div><h1 className="mt-4 text-3xl font-black">Acompanhe seu pedido.</h1>{order.status==='cancelled'?<div className="mt-5 rounded-2xl bg-red-50 p-4 font-bold text-red-700">Pedido cancelado. {order.cancellation_reason||''}</div>:<div className="mt-7">{steps.map(([key,label],index)=>{const done=currentIndex>=index;const active=currentIndex===index;return <div key={key} className="grid grid-cols-[36px_1fr] gap-3"><div className="flex flex-col items-center"><span className={`grid size-8 place-items-center rounded-full text-xs font-black ${done?'bg-[#C6A75E]':'bg-[#F4ECDF] text-slate-400'} ${active?'ring-4 ring-[#C6A75E]/20':''}`}>{done?'✓':index+1}</span>{index<steps.length-1&&<span className={`h-10 w-0.5 ${currentIndex>index?'bg-[#C6A75E]':'bg-[#F4ECDF]'}`}/>}</div><p className={`pt-1.5 text-sm font-black ${done?'text-[#1F2A44]':'text-slate-400'}`}>{label}</p></div>})}</div>}<div className="mt-6 rounded-2xl bg-[#F4ECDF] p-4"><div className="flex justify-between text-sm"><span className="text-slate-500">Cliente</span><strong>{order.customer_name}</strong></div><div className="mt-2 flex justify-between text-sm"><span className="text-slate-500">Total</span><strong>{brl.format(Number(order.total))}</strong></div><div className="mt-2 flex justify-between text-sm"><span className="text-slate-500">Pagamento</span><strong>{paymentLabels[order.payment_method]||order.payment_method}</strong></div></div><div className="mt-4 rounded-2xl border border-[#E8DCC8] p-4"><p className="text-xs font-black uppercase tracking-wider text-[#A88A45]">Itens</p><div className="mt-3 space-y-2">{order.items.map(item=><div key={item.id} className="flex justify-between gap-4 text-sm"><span>{item.quantity}x {item.product_name}</span><strong>{brl.format(Number(item.total_price))}</strong></div>)}</div></div><a href={`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Olá! Tenho uma dúvida sobre o pedido #${String(order.order_number).padStart(6,'0')}.`)}`} target="_blank" className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#25D366] text-sm font-black text-[#113A20]">FALAR COM A LOJA</a></>:<><p className="text-5xl">⏳</p><h1 className="mt-4 text-3xl font-black">Carregando pedido...</h1><p className="mt-2 text-sm text-slate-500">Se o pedido acabou de ser criado, aguarde alguns segundos.</p></>}</div></main></div>
 }

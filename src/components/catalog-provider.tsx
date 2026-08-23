@@ -1,56 +1,45 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { products as initialProducts, type Product } from "@/lib/mock-data";
 
 type CatalogContextValue = {
   products: Product[];
-  hydrated: boolean;
-  updateProduct: (id: number, patch: Partial<Product>) => void;
-  addProduct: (product: Omit<Product, "id">) => void;
-  resetProducts: () => void;
+  loading: boolean;
+  databaseConnected: boolean;
+  refreshProducts: () => Promise<void>;
 };
 
 const CatalogContext = createContext<CatalogContextValue | null>(null);
-const STORAGE_KEY = "conveniencia24h.catalog.v2";
 
 export function CatalogProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [databaseConnected, setDatabaseConnected] = useState(false);
 
-  useEffect(() => {
+  const refreshProducts = useCallback(async () => {
+    setLoading(true);
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setProducts(JSON.parse(stored));
+      const response = await fetch("/api/catalog", { cache: "no-store" });
+      if (!response.ok) throw new Error("Catálogo remoto indisponível");
+      const payload = await response.json();
+      if (Array.isArray(payload.products)) {
+        setProducts(payload.products);
+        setDatabaseConnected(true);
+      }
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      setDatabaseConnected(false);
+      setProducts((current) => current.length ? current : initialProducts);
     } finally {
-      setHydrated(true);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-  }, [products, hydrated]);
+    void refreshProducts();
+  }, [refreshProducts]);
 
-  const value = useMemo<CatalogContextValue>(() => ({
-    products,
-    hydrated,
-    updateProduct(id, patch) {
-      setProducts((current) =>
-        current.map((product) => (product.id === id ? { ...product, ...patch } : product)),
-      );
-    },
-    addProduct(product) {
-      setProducts((current) => {
-        const nextId = current.length ? Math.max(...current.map((item) => item.id)) + 1 : 1;
-        return [...current, { ...product, id: nextId }];
-      });
-    },
-    resetProducts() {
-      setProducts(initialProducts);
-    },
-  }), [products, hydrated]);
+  const value = useMemo(() => ({ products, loading, databaseConnected, refreshProducts }), [products, loading, databaseConnected, refreshProducts]);
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }

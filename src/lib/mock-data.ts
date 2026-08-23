@@ -1,14 +1,20 @@
 export type Product = {
   id: number;
+  sku?: string;
   name: string;
   category: string;
   price: number;
   oldPrice?: number;
   stock: number;
+  onHand?: number;
+  reserved?: number;
+  minimumStock?: number;
   badge: string;
   emoji: string;
   image?: string;
   active?: boolean;
+  storeProductId?: string;
+  location?: string;
 };
 
 export const categories = [

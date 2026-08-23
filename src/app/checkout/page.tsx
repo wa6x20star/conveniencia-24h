@@ -5,221 +5,48 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { StoreHeader } from "@/components/store-header";
 import { useCart } from "@/components/cart-provider";
+import { DEFAULT_CITY, DEFAULT_STATE, DELIVERY_FEE, STORE_WHATSAPP } from "@/lib/config";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const delivery = 7;
-const STORE_WHATSAPP = "5581995568320";
-const LAST_ORDER_KEY = "conveniencia24h.lastOrder.v1";
-
+const LAST_ORDER_KEY = "conveniencia24h.lastOrder.v2";
 type Payment = "pix" | "cash" | "card";
+const paymentLabels: Record<Payment,string> = { pix:"PIX", cash:"Dinheiro", card:"Cartão na entrega" };
+const paymentApi: Record<Payment,string> = { pix:"pix", cash:"cash", card:"card_on_delivery" };
 
-type CheckoutForm = {
-  name: string;
-  whatsapp: string;
-  cep: string;
-  street: string;
-  number: string;
-  complement: string;
-  neighborhood: string;
-  reference: string;
-  notes: string;
-  changeFor: string;
-};
-
-const initialForm: CheckoutForm = {
-  name: "",
-  whatsapp: "",
-  cep: "",
-  street: "",
-  number: "",
-  complement: "",
-  neighborhood: "",
-  reference: "",
-  notes: "",
-  changeFor: "",
-};
-
-const paymentLabels: Record<Payment, string> = {
-  pix: "PIX",
-  cash: "Dinheiro",
-  card: "Cartão na entrega",
-};
-
-export default function CheckoutPage() {
-  const router = useRouter();
-  const { items, subtotal, clear } = useCart();
-  const [payment, setPayment] = useState<Payment>("pix");
-  const [form, setForm] = useState<CheckoutForm>(initialForm);
-  const [submitting, setSubmitting] = useState(false);
-  const total = subtotal + (items.length ? delivery : 0);
-
-  const missingFields = useMemo(() => {
-    const required = [form.name, form.whatsapp, form.cep, form.street, form.number, form.neighborhood];
-    return required.some((value) => !value.trim());
-  }, [form]);
-
-  function updateField<K extends keyof CheckoutForm>(field: K, value: CheckoutForm[K]) {
-    setForm((current) => ({ ...current, [field]: value }));
+export default function CheckoutPage(){
+  const router=useRouter(); const {items,subtotal,clear}=useCart(); const [payment,setPayment]=useState<Payment>('pix'); const [submitting,setSubmitting]=useState(false); const [form,setForm]=useState({name:'',whatsapp:'',cep:'',street:'',number:'',complement:'',neighborhood:'',city:DEFAULT_CITY,state:DEFAULT_STATE,reference:'',notes:'',changeFor:''});
+  const delivery=DELIVERY_FEE; const total=subtotal+delivery; const missingFields=useMemo(()=>!form.name.trim()||!form.whatsapp.trim()||!form.cep.trim()||!form.street.trim()||!form.number.trim()||!form.neighborhood.trim()||!form.city.trim()||!form.state.trim(),[form]);
+  function updateField(key:keyof typeof form,value:string){setForm(current=>({...current,[key]:value}))}
+  function buildMessage(orderNumber:string, orderItems:any[], officialSubtotal:number, officialDelivery:number, officialTotal:number){return [
+    `🛒 *NOVO PEDIDO — CONVENIÊNCIA 24H*`,
+    `*Pedido #${orderNumber}*`,
+    ``,
+    `👤 *Cliente:* ${form.name}`,
+    `📱 *WhatsApp:* ${form.whatsapp}`,
+    `📍 *Entrega:* ${form.street}, ${form.number}${form.complement?` - ${form.complement}`:''} • ${form.neighborhood} • ${form.city}/${form.state} • CEP ${form.cep}`,
+    form.reference?`🧭 *Referência:* ${form.reference}`:'',
+    form.notes?`📝 *Observações:* ${form.notes}`:'',
+    payment==='cash'&&form.changeFor?`💵 *Troco para:* R$ ${form.changeFor}`:'',
+    ``, `📦 *Itens:*`,
+    ...orderItems.map((item:any)=>`• ${item.quantity??item.qty}x ${item.product_name??item.name} — ${brl.format(Number(item.total_price??((item.price??item.unit_price)*(item.quantity??item.qty))))}`),
+    ``, `Subtotal: ${brl.format(officialSubtotal)}`, `Entrega: ${brl.format(officialDelivery)}`, `*TOTAL: ${brl.format(officialTotal)}*`, ``, `💳 *Pagamento:* ${paymentLabels[payment]}`, ``, `Pedido gerado pelo site da Conveniência 24h.`
+  ].filter(Boolean).join('\n')}
+  async function finishOrder(){if(!items.length||submitting)return;if(missingFields){alert('Preencha todos os campos obrigatórios antes de finalizar.');return;} setSubmitting(true); const popup=window.open('about:blank','_blank');
+    try{
+      const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({customer:{name:form.name,phone:form.whatsapp},address:{postal_code:form.cep,street:form.street,number:form.number,complement:form.complement,neighborhood:form.neighborhood,city:form.city,state:form.state,reference:form.reference},payment_method:paymentApi[payment],change_for:payment==='cash'?form.changeFor:null,notes:form.notes,items:items.map(item=>({product_id:item.id,quantity:item.qty}))})});
+      if(!response.ok){const d=await response.json().catch(()=>({})); if(response.status===503) throw new Error('fallback:'+String(d.error||'database_not_configured')); throw new Error('hard:'+String(d.error||'order_rejected'));}
+      const {order}=await response.json(); const orderNumber=String(order.order_number).padStart(6,'0'); const message=buildMessage(orderNumber,order.items,Number(order.subtotal),Number(order.delivery_fee),Number(order.total)); const whatsappUrl=`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`;
+      localStorage.setItem(LAST_ORDER_KEY,JSON.stringify({trackingToken:order.tracking_token,orderNumber,whatsappUrl})); clear(); if(popup)popup.location.href=whatsappUrl;else window.location.href=whatsappUrl; router.push(`/pedido/${order.tracking_token}`);
+    }catch(error){
+      if(popup)popup.close(); const reason=error instanceof Error?error.message:'';
+      if(reason.startsWith('hard:')){
+        if(reason.includes('insufficient_stock')||reason.includes('product_unavailable')) alert('Um dos produtos não possui mais estoque suficiente. Atualize a loja e tente novamente.');
+        else alert('O pedido não pôde ser criado. Revise os dados e tente novamente.');
+        return;
+      }
+      const fallbackCode=String(Date.now()).slice(-6); const message=buildMessage(fallbackCode,items,subtotal,delivery,total); const whatsappUrl=`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`; localStorage.setItem(LAST_ORDER_KEY,JSON.stringify({code:fallbackCode,createdAt:new Date().toISOString(),customer:form.name,customerWhatsapp:form.whatsapp,address:{cep:form.cep,street:form.street,number:form.number,complement:form.complement,neighborhood:form.neighborhood,city:form.city,state:form.state,reference:form.reference},notes:form.notes,payment:paymentLabels[payment],changeFor:payment==='cash'?form.changeFor:'',items,subtotal,delivery,total,whatsappUrl,status:'RECEBIDO',fallback:true})); clear(); alert('O banco da V4 ainda não está conectado. O pedido será enviado apenas pelo WhatsApp nesta tentativa.'); window.location.href=whatsappUrl;
+    }finally{setSubmitting(false)}
   }
-
-  function buildMessage(orderCode: string) {
-    const itemLines = items
-      .map((item) => `• ${item.qty}x ${item.name} — ${brl.format(item.price * item.qty)}`)
-      .join("\n");
-
-    const address = [
-      `${form.street}, ${form.number}`,
-      form.complement,
-      form.neighborhood,
-      `CEP ${form.cep}`,
-    ].filter(Boolean).join(" • ");
-
-    const extras = [
-      form.reference ? `📍 Referência: ${form.reference}` : "",
-      form.notes ? `📝 Observações: ${form.notes}` : "",
-      payment === "cash" && form.changeFor ? `💵 Troco para: ${form.changeFor}` : "",
-    ].filter(Boolean).join("\n");
-
-    return [
-      `🛍️ *NOVO PEDIDO — CONVENIÊNCIA 24H*`,
-      `*Pedido #${orderCode}*`,
-      "",
-      `👤 *Cliente:* ${form.name}`,
-      `📱 *WhatsApp:* ${form.whatsapp}`,
-      `🏠 *Entrega:* ${address}`,
-      extras,
-      "",
-      `📦 *Itens:*`,
-      itemLines,
-      "",
-      `Subtotal: ${brl.format(subtotal)}`,
-      `Entrega: ${brl.format(delivery)}`,
-      `*TOTAL: ${brl.format(total)}*`,
-      `💳 *Pagamento:* ${paymentLabels[payment]}`,
-      "",
-      `Pedido gerado pelo site da Conveniência 24h.`,
-    ].filter(Boolean).join("\n");
-  }
-
-  function finishOrder() {
-    if (!items.length || submitting) return;
-
-    if (missingFields) {
-      window.alert("Preencha nome, WhatsApp, CEP, rua, número e bairro antes de finalizar.");
-      return;
-    }
-
-    setSubmitting(true);
-
-    const orderCode = String(Date.now()).slice(-6);
-    const message = buildMessage(orderCode);
-    const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`;
-
-    const localOrder = {
-      code: orderCode,
-      createdAt: new Date().toISOString(),
-      customer: form.name,
-      customerWhatsapp: form.whatsapp,
-      address: {
-        cep: form.cep,
-        street: form.street,
-        number: form.number,
-        complement: form.complement,
-        neighborhood: form.neighborhood,
-        reference: form.reference,
-      },
-      notes: form.notes,
-      payment: paymentLabels[payment],
-      changeFor: payment === "cash" ? form.changeFor : "",
-      items,
-      subtotal,
-      delivery,
-      total,
-      whatsappUrl,
-      status: "RECEBIDO",
-    };
-
-    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(localOrder));
-
-    const newWindow = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-    clear();
-    router.push(`/pedido/${orderCode}`);
-
-    if (!newWindow) {
-      window.location.href = whatsappUrl;
-    }
-  }
-
-  if (!items.length) {
-    return (
-      <div className="min-h-screen bg-[#F8F5EF]">
-        <StoreHeader />
-        <main className="mx-auto max-w-xl px-4 py-14 text-center">
-          <div className="text-6xl">🛒</div>
-          <h1 className="mt-5 text-3xl font-black text-[#1F2A44]">Nenhum item para finalizar</h1>
-          <p className="mt-2 text-sm text-slate-500">Adicione produtos ao carrinho antes de abrir o checkout.</p>
-          <Link href="/" className="mt-6 inline-flex rounded-2xl bg-[#1F2A44] px-5 py-3 text-xs font-black text-white">VOLTAR À LOJA</Link>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#F8F5EF]">
-      <StoreHeader />
-      <main className="mx-auto max-w-4xl px-4 py-6 md:px-6 md:py-10">
-        <div>
-          <p className="text-xs font-black uppercase tracking-wider text-[#A88A45]">Último passo</p>
-          <h1 className="mt-1 text-3xl font-black text-[#1F2A44]">Finalizar pedido</h1>
-          <p className="mt-2 text-sm text-slate-500">Ao finalizar, o WhatsApp abrirá com o pedido pronto para envio à loja.</p>
-        </div>
-
-        <div className="mt-7 grid gap-5 md:grid-cols-2">
-          <section className="rounded-[2rem] border border-[#E8DCC8] bg-white p-5 shadow-sm">
-            <div className="mb-5 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#1F2A44] text-sm font-black text-white">1</span><h2 className="font-black text-[#1F2A44]">Seus dados</h2></div>
-            <div className="space-y-3">
-              <input value={form.name} onChange={(event) => updateField("name", event.target.value)} className="h-12 w-full rounded-2xl border border-[#E8DCC8] px-4 outline-none focus:border-[#C6A75E]" placeholder="Nome completo *" />
-              <input value={form.whatsapp} onChange={(event) => updateField("whatsapp", event.target.value)} className="h-12 w-full rounded-2xl border border-[#E8DCC8] px-4 outline-none focus:border-[#C6A75E]" placeholder="WhatsApp *" inputMode="tel" />
-            </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-[#E8DCC8] bg-white p-5 shadow-sm">
-            <div className="mb-5 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#1F2A44] text-sm font-black text-white">2</span><h2 className="font-black text-[#1F2A44]">Entrega</h2></div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input value={form.cep} onChange={(event) => updateField("cep", event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="CEP *" inputMode="numeric" />
-              <input value={form.street} onChange={(event) => updateField("street", event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="Rua *" />
-              <input value={form.number} onChange={(event) => updateField("number", event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4" placeholder="Número *" />
-              <input value={form.complement} onChange={(event) => updateField("complement", event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4" placeholder="Complemento" />
-              <input value={form.neighborhood} onChange={(event) => updateField("neighborhood", event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="Bairro *" />
-              <input value={form.reference} onChange={(event) => updateField("reference", event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="Ponto de referência" />
-              <textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} className="min-h-24 rounded-2xl border border-[#E8DCC8] p-4 sm:col-span-2" placeholder="Observações do pedido (opcional)" />
-            </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-[#E8DCC8] bg-white p-5 shadow-sm md:col-span-2">
-            <div className="mb-5 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#1F2A44] text-sm font-black text-white">3</span><h2 className="font-black text-[#1F2A44]">Pagamento</h2></div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <button type="button" onClick={() => setPayment("pix")} className={`rounded-2xl border-2 p-4 text-left ${payment === "pix" ? "border-[#C6A75E] bg-[#F7F2E9]" : "border-[#E8DCC8]"}`}><span className="text-2xl">◈</span><p className="mt-2 font-black text-[#1F2A44]">PIX</p><p className="text-xs text-slate-500">Pedido informa PIX à loja</p></button>
-              <button type="button" onClick={() => setPayment("cash")} className={`rounded-2xl border-2 p-4 text-left ${payment === "cash" ? "border-[#C6A75E] bg-[#F7F2E9]" : "border-[#E8DCC8]"}`}><span className="text-2xl">💵</span><p className="mt-2 font-black text-[#1F2A44]">Dinheiro</p><p className="text-xs text-slate-500">Troco vai junto no pedido</p></button>
-              <button type="button" onClick={() => setPayment("card")} className={`rounded-2xl border-2 p-4 text-left ${payment === "card" ? "border-[#C6A75E] bg-[#F7F2E9]" : "border-[#E8DCC8]"}`}><span className="text-2xl">💳</span><p className="mt-2 font-black text-[#1F2A44]">Cartão</p><p className="text-xs text-slate-500">Pagamento na entrega</p></button>
-            </div>
-            {payment === "cash" && <input value={form.changeFor} onChange={(event) => updateField("changeFor", event.target.value)} className="mt-3 h-12 w-full rounded-2xl border border-[#E8DCC8] px-4" placeholder="Troco para quanto? (opcional)" inputMode="decimal" />}
-          </section>
-        </div>
-
-        <section className="mt-5 rounded-[2rem] bg-[#1F2A44] p-5 text-white md:flex md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-[#E8DCC8]">Total do pedido</p>
-            <p className="mt-1 text-3xl font-black">{brl.format(total)}</p>
-            <p className="mt-1 text-xs text-[#B9B2A8]">Inclui {brl.format(delivery)} de entrega demonstrativa</p>
-          </div>
-          <button onClick={finishOrder} disabled={submitting} className="mt-4 h-14 w-full rounded-2xl bg-[#C6A75E] px-6 text-sm font-black text-[#1F2A44] disabled:opacity-60 md:mt-0 md:w-auto">
-            {submitting ? "ABRINDO WHATSAPP..." : `ENVIAR NO WHATSAPP • ${brl.format(total)}`}
-          </button>
-        </section>
-
-        <p className="mt-3 text-center text-[11px] font-semibold text-[#8B8277]">O WhatsApp abrirá com a mensagem preenchida. O cliente confirma o envio no aplicativo.</p>
-      </main>
-    </div>
-  );
+  if(!items.length)return <div className="min-h-screen bg-[#F8F5EF]"><StoreHeader/><main className="mx-auto max-w-xl px-4 py-14 text-center"><div className="text-6xl">🛒</div><h1 className="mt-5 text-3xl font-black text-[#1F2A44]">Nenhum item para finalizar</h1><Link href="/" className="mt-6 inline-flex rounded-2xl bg-[#1F2A44] px-5 py-3 text-xs font-black text-white">VOLTAR À LOJA</Link></main></div>;
+  return <div className="min-h-screen bg-[#F8F5EF]"><StoreHeader/><main className="mx-auto max-w-4xl px-4 py-6 md:px-6 md:py-10"><div><p className="text-xs font-black uppercase tracking-wider text-[#A88A45]">Último passo</p><h1 className="mt-1 text-3xl font-black text-[#1F2A44]">Finalizar pedido</h1><p className="mt-2 text-sm text-slate-500">Na V4, o pedido é salvo primeiro e só depois o WhatsApp é aberto.</p></div><div className="mt-7 grid gap-5 md:grid-cols-2"><section className="rounded-[2rem] border border-[#E8DCC8] bg-white p-5"><div className="mb-5 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#1F2A44] text-sm font-black text-white">1</span><h2 className="font-black">Seus dados</h2></div><div className="space-y-3"><input value={form.name} onChange={e=>updateField('name',e.target.value)} className="h-12 w-full rounded-2xl border border-[#E8DCC8] px-4" placeholder="Nome completo *"/><input value={form.whatsapp} onChange={e=>updateField('whatsapp',e.target.value)} className="h-12 w-full rounded-2xl border border-[#E8DCC8] px-4" placeholder="WhatsApp *" inputMode="tel"/></div></section><section className="rounded-[2rem] border border-[#E8DCC8] bg-white p-5"><div className="mb-5 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#1F2A44] text-sm font-black text-white">2</span><h2 className="font-black">Entrega</h2></div><div className="grid gap-3 sm:grid-cols-2"><input value={form.cep} onChange={e=>updateField('cep',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="CEP *"/><input value={form.street} onChange={e=>updateField('street',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="Rua *"/><input value={form.number} onChange={e=>updateField('number',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4" placeholder="Número *"/><input value={form.complement} onChange={e=>updateField('complement',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4" placeholder="Complemento"/><input value={form.neighborhood} onChange={e=>updateField('neighborhood',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="Bairro *"/><input value={form.city} onChange={e=>updateField('city',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4" placeholder="Cidade *"/><input value={form.state} maxLength={2} onChange={e=>updateField('state',e.target.value.toUpperCase())} className="h-12 rounded-2xl border border-[#E8DCC8] px-4" placeholder="UF *"/><input value={form.reference} onChange={e=>updateField('reference',e.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] px-4 sm:col-span-2" placeholder="Ponto de referência"/><textarea value={form.notes} onChange={e=>updateField('notes',e.target.value)} className="min-h-24 rounded-2xl border border-[#E8DCC8] p-4 sm:col-span-2" placeholder="Observações"/></div></section><section className="rounded-[2rem] border border-[#E8DCC8] bg-white p-5 md:col-span-2"><div className="mb-5 flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-[#1F2A44] text-sm font-black text-white">3</span><h2 className="font-black">Pagamento</h2></div><div className="grid gap-3 sm:grid-cols-3">{([['pix','◈','PIX'],['cash','💵','Dinheiro'],['card','💳','Cartão na entrega']] as const).map(([key,icon,label])=><button key={key} type="button" onClick={()=>setPayment(key)} className={`rounded-2xl border-2 p-4 text-left ${payment===key?'border-[#C6A75E] bg-[#F7F2E9]':'border-[#E8DCC8]'}`}><span className="text-2xl">{icon}</span><p className="mt-2 font-black">{label}</p></button>)}</div>{payment==='cash'&&<input value={form.changeFor} onChange={e=>updateField('changeFor',e.target.value)} className="mt-3 h-12 w-full rounded-2xl border border-[#E8DCC8] px-4" placeholder="Troco para quanto?"/>}</section></div><section className="mt-5 rounded-[2rem] bg-[#1F2A44] p-5 text-white md:flex md:items-center md:justify-between"><div><p className="text-sm text-[#E8DCC8]">Total</p><p className="mt-1 text-3xl font-black">{brl.format(total)}</p></div><button onClick={()=>void finishOrder()} disabled={submitting} className="mt-4 h-14 w-full rounded-2xl bg-[#C6A75E] px-6 text-sm font-black text-[#1F2A44] disabled:opacity-60 md:mt-0 md:w-auto">{submitting?'CRIANDO PEDIDO...':`FINALIZAR • ${brl.format(total)}`}</button></section></main></div>
 }
