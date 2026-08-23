@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
+import { CatalogProvider } from "@/components/catalog-provider";
 
 export const metadata: Metadata = {
   title: "Conveniência 24h",
@@ -10,7 +11,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body><CartProvider>{children}</CartProvider></body>
+      <body>
+        <CatalogProvider>
+          <CartProvider>{children}</CartProvider>
+        </CatalogProvider>
+      </body>
     </html>
   );
 }

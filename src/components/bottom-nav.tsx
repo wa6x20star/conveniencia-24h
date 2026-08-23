@@ -10,10 +10,14 @@ const items = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-2 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E8DCC8] bg-[#fffdf9]/95 px-2 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden">
       <div className="mx-auto grid max-w-md grid-cols-5">
         {items.map(([href, icon, label]) => (
-          <Link key={label} href={href} className="flex flex-col items-center gap-0.5 rounded-xl px-1 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-950">
+          <Link
+            key={label}
+            href={href}
+            className="flex flex-col items-center gap-0.5 rounded-xl px-1 py-1 text-[10px] font-bold text-[#6F685F] transition hover:bg-[#F7F2E9] hover:text-[#1F2A44]"
+          >
             <span className="text-lg leading-none">{icon}</span>
             {label}
           </Link>

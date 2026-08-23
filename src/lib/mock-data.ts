@@ -1,3 +1,16 @@
+export type Product = {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  oldPrice?: number;
+  stock: number;
+  badge: string;
+  emoji: string;
+  image?: string;
+  active?: boolean;
+};
+
 export const categories = [
   { name: "Bebidas", icon: "🥤", slug: "bebidas" },
   { name: "Bomboniere", icon: "🍫", slug: "bomboniere" },
@@ -7,13 +20,13 @@ export const categories = [
   { name: "Utilidades", icon: "🏠", slug: "utilidades" },
 ];
 
-export const products = [
-  { id: 1, name: "Coca-Cola 2L", category: "Bebidas", price: 10.99, oldPrice: 12.49, stock: 18, badge: "Oferta", emoji: "🥤" },
-  { id: 2, name: "Gelo 5 kg", category: "Gelo", price: 7.5, stock: 9, badge: "24h", emoji: "🧊" },
-  { id: 3, name: "Chocolate ao leite", category: "Bomboniere", price: 6.99, stock: 24, badge: "Mais vendido", emoji: "🍫" },
-  { id: 4, name: "Doritos 120 g", category: "Salgadinhos", price: 11.49, stock: 11, badge: "", emoji: "🍿" },
-  { id: 5, name: "Água mineral 1,5L", category: "Bebidas", price: 4.49, stock: 30, badge: "", emoji: "💧" },
-  { id: 6, name: "Energético 473 ml", category: "Bebidas", price: 9.99, stock: 14, badge: "Madrugada", emoji: "⚡" },
+export const products: Product[] = [
+  { id: 1, name: "Coca-Cola 2L", category: "Bebidas", price: 10.99, oldPrice: 12.49, stock: 18, badge: "Oferta", emoji: "🥤", active: true },
+  { id: 2, name: "Gelo 5 kg", category: "Gelo", price: 7.5, stock: 9, badge: "24h", emoji: "🧊", active: true },
+  { id: 3, name: "Chocolate ao leite", category: "Bomboniere", price: 6.99, stock: 24, badge: "Mais vendido", emoji: "🍫", active: true },
+  { id: 4, name: "Doritos 120 g", category: "Salgadinhos", price: 11.49, stock: 11, badge: "", emoji: "🍿", active: true },
+  { id: 5, name: "Água mineral 1,5L", category: "Bebidas", price: 4.49, stock: 30, badge: "", emoji: "💧", active: true },
+  { id: 6, name: "Energético 473 ml", category: "Bebidas", price: 9.99, stock: 14, badge: "Madrugada", emoji: "⚡", active: true },
 ];
 
 export const adminOrders = [

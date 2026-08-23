@@ -7,6 +7,7 @@ type CartProduct = {
   name: string;
   price: number;
   emoji: string;
+  image?: string;
 };
 
 type CartItem = CartProduct & { qty: number };
