@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { StoreHeader } from "@/components/store-header";
+import { products } from "@/lib/mock-data";
+
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const product = products.find((p) => p.id === Number(id)) ?? products[0];
+  return <div className="min-h-screen bg-slate-50"><StoreHeader /><main className="mx-auto max-w-4xl px-4 py-6 md:px-6 md:py-10"><Link href="/" className="text-sm font-bold text-slate-500">← Voltar para a loja</Link><div className="mt-5 grid gap-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2 md:p-7"><div className="grid min-h-72 place-items-center rounded-[1.6rem] bg-slate-100 text-8xl">{product.emoji}</div><div className="flex flex-col"><p className="text-xs font-black uppercase tracking-wider text-emerald-600">{product.category}</p><h1 className="mt-2 text-3xl font-black">{product.name}</h1><p className="mt-3 text-sm leading-6 text-slate-500">Produto disponível para entrega rápida. A disponibilidade final é confirmada novamente ao finalizar o pedido.</p><p className="mt-6 text-3xl font-black">{new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(product.price)}</p><div className="mt-6 flex items-center gap-3"><div className="flex items-center gap-3 rounded-2xl bg-slate-100 p-1"><button className="grid size-10 place-items-center rounded-xl bg-white font-black">−</button><span className="w-6 text-center font-black">1</span><button className="grid size-10 place-items-center rounded-xl bg-white font-black">+</button></div><button className="h-12 flex-1 rounded-2xl bg-emerald-500 px-4 text-sm font-black">ADICIONAR AO CARRINHO</button></div><p className="mt-auto pt-6 text-xs font-semibold text-slate-400">Saldo demonstrativo: {product.stock} unidades</p></div></div></main></div>;
+}
