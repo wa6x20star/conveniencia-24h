@@ -33,7 +33,7 @@ export default function ProductPage() {
 
   function addSelectedQuantity() {
     if (unavailable) return;
-    for (let index = 0; index < qty; index += 1) addItem(product);
+    for (let index = 0; index < qty; index += 1) addItem(product!);
   }
 
   return (
