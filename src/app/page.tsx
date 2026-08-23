@@ -65,12 +65,18 @@ export default function Home() {
             <div className="absolute -bottom-20 -left-16 size-64 rounded-full bg-[#C6A75E]/15 blur-sm" />
 
             <div className="relative z-10 grid h-full min-h-60 place-items-center p-6">
-              <div className="relative grid size-56 place-items-center rounded-[3rem] bg-[#fffdf9] shadow-2xl md:size-64">
-                <span className="absolute -left-8 top-10 grid size-20 place-items-center rounded-3xl bg-[#E8DCC8] text-4xl shadow-lg">🥤</span>
-                <span className="absolute -right-7 top-6 grid size-20 place-items-center rounded-3xl bg-[#C6A75E] text-4xl shadow-lg">🍫</span>
-                <span className="absolute -bottom-6 left-4 grid size-20 place-items-center rounded-3xl bg-[#F7F2E9] text-4xl shadow-lg">🧊</span>
-                <span className="absolute -bottom-8 right-3 grid size-20 place-items-center rounded-3xl bg-[#E8DCC8] text-4xl shadow-lg">🍿</span>
-                <span className="text-8xl">🛍️</span>
+              <div className="relative h-64 w-full max-w-sm md:h-72">
+                <div className="absolute left-1/2 top-1/2 h-56 w-52 -translate-x-1/2 -translate-y-1/2 rounded-[3rem] bg-[#fffdf9] shadow-2xl" />
+                <img src="https://www.powellsnl.ca/media/uploads/gs1/06700000427_20.png" alt="Coca-Cola 2L" className="absolute bottom-2 left-1/2 z-20 h-56 -translate-x-1/2 object-contain drop-shadow-2xl" />
+                <div className="absolute left-0 top-5 z-30 grid size-28 place-items-center overflow-hidden rounded-[2rem] bg-[#E8DCC8] p-3 shadow-xl">
+                  <img src="https://carrefourbrfood.vtexassets.com/arquivos/ids/193842562/salgadinho-queijo-nacho-doritos-120g-1.jpg?v=638876002921530000" alt="Doritos 120g" className="h-full w-full object-contain" />
+                </div>
+                <div className="absolute right-0 top-12 z-30 grid size-24 place-items-center overflow-hidden rounded-[2rem] bg-[#C6A75E] p-3 shadow-xl">
+                  <img src="https://down-br.img.susercontent.com/file/de3905e6d774d25363e21ac6a2ff7297" alt="Red Bull 250ml" className="h-full w-full object-contain" />
+                </div>
+                <div className="absolute bottom-0 right-6 z-30 grid size-24 place-items-center overflow-hidden rounded-[2rem] bg-[#F7F2E9] p-3 shadow-xl">
+                  <img src="https://images.tcdn.com.br/img/img_prod/1377318/chocolate_bis_100_8g_ao_leite_169_1_bc46a4e81dee4e6402c7608e4f4802f0.jpg" alt="Bis ao Leite" className="h-full w-full object-contain" />
+                </div>
               </div>
             </div>
           </div>
@@ -101,7 +107,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-7">
             {categories.map((item) => {
               const slug = item.name.toLocaleLowerCase("pt-BR");
               const selected = category === slug;

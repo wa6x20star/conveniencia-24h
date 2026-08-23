@@ -12,7 +12,7 @@ type CatalogContextValue = {
 };
 
 const CatalogContext = createContext<CatalogContextValue | null>(null);
-const STORAGE_KEY = "conveniencia24h.catalog.v1";
+const STORAGE_KEY = "conveniencia24h.catalog.v2";
 
 export function CatalogProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);

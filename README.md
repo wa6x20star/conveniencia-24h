@@ -22,3 +22,8 @@ Base física inicial da plataforma de conveniência 100% online com entrega 24h.
 A interface-base já contém loja, carrinho, checkout, dashboard administrativo, pedidos, produtos, estoque, entregas, tela do entregador e login. Os dados exibidos ainda são mockados até a conexão com o novo projeto Supabase ser concluída.
 
 O arquivo `supabase/migrations/001_initial_schema.sql` contém o primeiro esquema do banco.
+
+
+## V3
+
+Checkout com envio do pedido por WhatsApp e catálogo ampliado com fotos reais de referência. Veja `ATUALIZACAO_V3.md`.
