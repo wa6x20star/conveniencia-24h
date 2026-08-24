@@ -34,3 +34,10 @@
 - PDF/QR Code real
 - Notificações e WhatsApp
 - Deploy na Vercel
+
+## V5 — Estoque administrativo
+- Login interno direcionando ao controle de estoque.
+- Painel de estoque com físico, reservado, disponível e vendido.
+- Entrada, perda, avaria, ajuste e inventário com histórico.
+- Movimentações manuais restritas ao perfil admin.
+- Venda continua sendo baixada automaticamente pelo fluxo do pedido.
