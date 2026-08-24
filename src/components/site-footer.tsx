@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ClockIcon, DeliveryIcon, HeadsetIcon, ShieldIcon, TagIcon } from "@/components/brand-icons";
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -8,6 +9,15 @@ const benefits = [
   { icon: TagIcon, title: "Ofertas todos os dias", text: "Promoções e novidades selecionadas para você." },
   { icon: HeadsetIcon, title: "Atendimento humano", text: "Fale diretamente com a loja quando precisar." },
 ];
+
+function LockIcon({ className = "size-3" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect x="5" y="10" width="14" height="10" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
 
 export function SiteFooter() {
   return (
@@ -24,9 +34,21 @@ export function SiteFooter() {
             </div>
           ))}
         </div>
+
         <div className="flex flex-col gap-4 border-t border-white/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between md:px-7">
           <BrandLogo inverted tagline />
-          <p className="text-[11px] font-medium text-[#CFC6B7]">Conveniência online • atendimento 24 horas</p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-medium text-[#CFC6B7]">
+            <span>Conveniência online • atendimento 24 horas</span>
+            <span className="hidden h-3 w-px bg-white/15 sm:block" aria-hidden="true" />
+            <Link
+              href="/admin/estoque"
+              title="Acesso à área interna"
+              className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[9px] font-semibold tracking-[.04em] text-[#CFC6B7]/45 transition hover:bg-white/5 hover:text-[#E8DCC8]/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A75E]"
+            >
+              <LockIcon className="size-3" />
+              Área interna
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

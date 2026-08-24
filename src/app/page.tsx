@@ -38,19 +38,19 @@ export default function Home() {
       <StoreHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-7">
-        <section className="brand-shadow overflow-hidden rounded-[2rem] border border-[#E8DCC8] bg-[#FFFDF9]">
-          <div className="grid gap-8 px-5 pb-6 pt-6 md:grid-cols-[1.02fr_.98fr] md:px-8 md:pb-0 md:pt-8 lg:px-10 lg:pt-10">
-            <div className="flex flex-col justify-center pb-0 md:pb-10">
+        <section className="relative overflow-visible rounded-[2rem] bg-[#F9F6F2]">
+          <div className="relative min-h-[610px] overflow-hidden rounded-[2rem] md:min-h-[650px] lg:min-h-[690px]">
+            <div className="relative z-20 max-w-[690px] px-6 pb-[310px] pt-12 sm:px-8 md:w-[53%] md:px-10 md:pb-40 md:pt-16 lg:px-12 lg:pt-20">
               <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#C6A75E] px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.22em] text-[#1F2A44]">
                 <ClockIcon className="size-4" /> Aberto 24 horas
               </span>
 
-              <h1 className="mt-6 max-w-xl text-[3.35rem] font-extrabold leading-[0.94] tracking-[-.06em] text-[#1F2A44] md:text-[4.3rem] lg:text-[5.4rem]">
+              <h1 className="mt-7 text-[3.5rem] font-extrabold leading-[0.92] tracking-[-.065em] text-[#1F2A44] sm:text-[4.2rem] md:text-[4.5rem] lg:text-[5.35rem]">
                 Faltou? <br />
                 <span className="text-[#C6A75E]">A gente leva.</span>
               </h1>
 
-              <p className="mt-5 max-w-xl text-base font-medium leading-7 text-[#4E4A43] md:text-[1.1rem]">
+              <p className="mt-6 max-w-[620px] text-base font-medium leading-7 text-[#393731] sm:text-[1.05rem] lg:text-[1.12rem]">
                 Bebidas, bomboniere, snacks e itens do dia a dia com <strong className="font-extrabold text-[#1F2A44]">entrega rápida</strong> em {DEFAULT_CITY} e região.
               </p>
 
@@ -58,34 +58,35 @@ export default function Home() {
                 <a href="#mais-vendidos" className="brand-btn-primary h-14 px-7 text-sm uppercase tracking-[.08em]">
                   Fazer pedido <ArrowIcon className="size-4" />
                 </a>
-                <a href="#categorias" className="inline-flex h-14 items-center justify-center rounded-2xl border border-[#1F2A44]/28 bg-white px-7 text-sm font-extrabold uppercase tracking-[.08em] text-[#1F2A44] transition hover:border-[#C6A75E] hover:text-[#A88A45]">
+                <a href="#categorias" className="inline-flex h-14 items-center justify-center rounded-2xl border border-[#1F2A44]/30 bg-white/75 px-7 text-sm font-extrabold uppercase tracking-[.08em] text-[#1F2A44] backdrop-blur-sm transition hover:border-[#C6A75E] hover:text-[#A88A45]">
                   Ver categorias
                 </a>
               </div>
             </div>
 
-            <div className="relative flex min-h-[360px] items-end justify-center md:min-h-[560px]">
-              <div className="absolute right-[-100px] top-[-40px] size-72 rounded-full border-[36px] border-[#EDE5D6] opacity-90 md:size-[26rem] md:border-[44px]" />
-              <div className="absolute bottom-16 left-8 h-2 w-24 rounded-full bg-[#C6A75E] opacity-70 shadow-[0_16px_28px_rgba(198,167,94,.35)]" />
-              <div className="absolute bottom-24 left-8 h-2 w-32 rounded-full bg-[#C6A75E] opacity-60" />
-              <div className="absolute bottom-32 left-8 h-2 w-24 rounded-full bg-[#C6A75E] opacity-50" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-[120px] top-[150px] z-10 md:inset-y-0 md:left-[44%] md:right-[-2%]">
               <img
-                src="/hero/hero-bag.png"
+                src="/hero/hero-products-integrated.png"
                 alt="Sacola da Conveniência 24h com bebidas, snacks e bomboniere"
-                className="relative z-10 max-h-[560px] w-auto object-contain md:translate-x-8 lg:max-h-[610px]"
+                className="absolute bottom-[-8%] right-[-7%] h-auto w-[103%] max-w-none object-contain sm:right-[-3%] md:bottom-[-2%] md:right-[-6%] md:w-[108%] lg:right-[-4%] lg:w-[105%]"
+                style={{
+                  mixBlendMode: "multiply",
+                  WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 10%, black 100%)",
+                  maskImage: "linear-gradient(to right, transparent 0%, black 10%, black 100%)",
+                }}
               />
             </div>
-          </div>
 
-          <div className="border-t border-[#EEE5D8] bg-[#FFFDF9] px-5 pb-5 pt-4 md:px-8 md:pt-0 lg:px-10">
-            <div className="brand-shadow translate-y-0 rounded-[1.6rem] border border-[#E8DCC8] bg-white p-3 md:-mt-8 md:p-4">
-              <div className="flex flex-col gap-3">
+            <div className="absolute right-[-100px] top-[-95px] z-0 size-[330px] rounded-full border-[48px] border-[#E9E0D0]/75 md:size-[430px] md:border-[54px]" />
+
+            <div className="absolute bottom-6 left-5 right-5 z-30 md:bottom-8 md:left-10 md:right-auto md:w-[66%] lg:left-12 lg:w-[63%]">
+              <div className="brand-shadow rounded-[1.7rem] border border-[#E8DCC8] bg-white/95 p-3 backdrop-blur-md md:p-4">
                 <label className="relative block">
                   <SearchIcon className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#A88A45]" />
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    className="brand-input h-[58px] w-full rounded-2xl border-[#E5D8C0] pl-12 pr-32 text-sm font-semibold placeholder:text-[#9A9186]"
+                    className="brand-input h-[58px] w-full rounded-2xl border-[#E5D8C0] bg-white pl-12 pr-28 text-sm font-semibold placeholder:text-[#9A9186] sm:pr-32"
                     placeholder="O que você precisa agora?"
                   />
                   <button className="absolute right-2 top-1/2 inline-flex h-11 -translate-y-1/2 items-center rounded-2xl bg-[#1F2A44] px-5 text-sm font-bold text-white transition hover:bg-[#162038]">
@@ -93,30 +94,30 @@ export default function Home() {
                   </button>
                 </label>
 
-                <div className="flex flex-wrap items-center gap-2 px-1">
-                  <span className="text-[11px] font-extrabold uppercase tracking-[.14em] text-[#8E8375]">Mais buscados:</span>
+                <div className="mt-3 flex flex-wrap items-center gap-2 px-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-[.14em] text-[#8E8375]">Mais buscados:</span>
                   {quickTerms.map((term) => (
-                    <button key={term} onClick={() => setQuery(term)} className="rounded-full bg-[#F4ECDF] px-4 py-2 text-sm font-bold text-[#675F55] transition hover:bg-[#E8DCC8] hover:text-[#1F2A44]">
+                    <button key={term} onClick={() => setQuery(term)} className="rounded-full bg-[#F4ECDF] px-3.5 py-2 text-xs font-bold text-[#675F55] transition hover:bg-[#E8DCC8] hover:text-[#1F2A44] sm:text-sm">
                       {term}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {heroHighlights.map(({ Icon, title, text }) => (
-                <div key={title} className="flex items-start gap-3 rounded-[1.4rem] border border-[#EEE5D8] bg-[#FFFDF9] p-4">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#F4ECDF] text-[#1F2A44]">
-                    <Icon className="size-5" />
-                  </span>
-                  <div>
-                    <p className="font-display text-base font-bold text-[#1F2A44]">{title}</p>
-                    <p className="mt-0.5 text-sm font-medium text-[#736C61]">{text}</p>
-                  </div>
+          <div className="relative z-40 mt-3 grid gap-0 overflow-hidden rounded-[1.6rem] border border-[#E8DCC8] bg-white shadow-[0_18px_50px_rgba(31,42,68,.08)] sm:grid-cols-2 xl:grid-cols-4">
+            {heroHighlights.map(({ Icon, title, text }, index) => (
+              <div key={title} className={`flex items-center gap-3 p-5 ${index ? "border-t border-[#EEE5D8] sm:border-t-0 sm:border-l" : ""} ${index === 2 ? "sm:border-l-0 xl:border-l" : ""}`}>
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#F4ECDF] text-[#1F2A44]">
+                  <Icon className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-display text-[15px] font-bold text-[#1F2A44]">{title}</p>
+                  <p className="mt-0.5 truncate text-xs font-medium text-[#736C61]">{text}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </section>
 
