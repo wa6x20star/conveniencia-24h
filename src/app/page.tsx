@@ -1,16 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowIcon, ClockIcon, DeliveryIcon, SearchIcon, ShieldIcon } from "@/components/brand-icons";
-import { BrandMark } from "@/components/brand-logo";
+import { ArrowIcon, ClockIcon, DeliveryIcon, SearchIcon, ShieldIcon, TagIcon, HeadsetIcon } from "@/components/brand-icons";
 import { BottomNav } from "@/components/bottom-nav";
 import { ProductCard } from "@/components/product-card";
 import { SiteFooter } from "@/components/site-footer";
 import { StoreHeader } from "@/components/store-header";
 import { useCatalog } from "@/components/catalog-provider";
 import { categories } from "@/lib/mock-data";
+import { DEFAULT_CITY, DEFAULT_STATE } from "@/lib/config";
 
 const quickTerms = ["Água", "Gelo", "Chocolate", "Doritos", "Refrigerante"];
+const heroHighlights = [
+  { Icon: DeliveryIcon, title: "Entrega rápida", text: "Chegou, pediu, recebeu." },
+  { Icon: ClockIcon, title: "Aberto 24h", text: "Sempre que você precisar." },
+  { Icon: ShieldIcon, title: "Pagamento fácil", text: "Pix, cartão e dinheiro." },
+  { Icon: HeadsetIcon, title: "Pedido pelo WhatsApp", text: "Fale com a gente agora." },
+];
 
 export default function Home() {
   const { products } = useCatalog();
@@ -31,82 +37,90 @@ export default function Home() {
     <div className="min-h-screen bg-[#F8F5EF] pb-24 md:pb-4">
       <StoreHeader />
 
-      <main className="mx-auto max-w-6xl px-4 py-5 md:px-6 md:py-7">
-        <section className="brand-grid brand-shadow relative overflow-hidden rounded-[2rem] bg-[#1F2A44] text-white md:grid md:min-h-[390px] md:grid-cols-[1.08fr_.92fr]">
-          <div className="relative z-10 flex flex-col justify-center p-6 md:p-10 lg:p-12">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#C6A75E] px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[.16em] text-[#1F2A44]">
-              <ClockIcon className="size-3.5" /> Aberto 24 horas
-            </span>
+      <main className="mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-7">
+        <section className="brand-shadow overflow-hidden rounded-[2rem] border border-[#E8DCC8] bg-[#FFFDF9]">
+          <div className="grid gap-8 px-5 pb-6 pt-6 md:grid-cols-[1.02fr_.98fr] md:px-8 md:pb-0 md:pt-8 lg:px-10 lg:pt-10">
+            <div className="flex flex-col justify-center pb-0 md:pb-10">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#C6A75E] px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.22em] text-[#1F2A44]">
+                <ClockIcon className="size-4" /> Aberto 24 horas
+              </span>
 
-            <h1 className="mt-5 max-w-xl text-4xl font-extrabold leading-[1.03] tracking-[-.045em] md:text-5xl lg:text-[3.65rem]">
-              O que você precisa, <span className="text-[#C6A75E]">na sua porta.</span>
-            </h1>
+              <h1 className="mt-6 max-w-xl text-[3.35rem] font-extrabold leading-[0.94] tracking-[-.06em] text-[#1F2A44] md:text-[4.3rem] lg:text-[5.4rem]">
+                Faltou? <br />
+                <span className="text-[#C6A75E]">A gente leva.</span>
+              </h1>
 
-            <p className="mt-4 max-w-lg text-sm font-medium leading-6 text-[#E8DCC8] md:text-[15px]">
-              Produtos do dia a dia, bomboniere e necessidades de última hora com uma compra simples, rápida e sem burocracia.
-            </p>
+              <p className="mt-5 max-w-xl text-base font-medium leading-7 text-[#4E4A43] md:text-[1.1rem]">
+                Bebidas, bomboniere, snacks e itens do dia a dia com <strong className="font-extrabold text-[#1F2A44]">entrega rápida</strong> em {DEFAULT_CITY} e região.
+              </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
-              <a href="#mais-vendidos" className="brand-btn-primary h-12 px-5 text-xs uppercase tracking-wide">
-                Fazer pedido agora <ArrowIcon className="size-4" />
-              </a>
-              <a href="#categorias" className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/35 px-5 text-xs font-extrabold uppercase tracking-wide text-white transition hover:border-[#C6A75E] hover:text-[#C6A75E]">
-                Ver categorias
-              </a>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <a href="#mais-vendidos" className="brand-btn-primary h-14 px-7 text-sm uppercase tracking-[.08em]">
+                  Fazer pedido <ArrowIcon className="size-4" />
+                </a>
+                <a href="#categorias" className="inline-flex h-14 items-center justify-center rounded-2xl border border-[#1F2A44]/28 bg-white px-7 text-sm font-extrabold uppercase tracking-[.08em] text-[#1F2A44] transition hover:border-[#C6A75E] hover:text-[#A88A45]">
+                  Ver categorias
+                </a>
+              </div>
+            </div>
+
+            <div className="relative flex min-h-[360px] items-end justify-center md:min-h-[560px]">
+              <div className="absolute right-[-100px] top-[-40px] size-72 rounded-full border-[36px] border-[#EDE5D6] opacity-90 md:size-[26rem] md:border-[44px]" />
+              <div className="absolute bottom-16 left-8 h-2 w-24 rounded-full bg-[#C6A75E] opacity-70 shadow-[0_16px_28px_rgba(198,167,94,.35)]" />
+              <div className="absolute bottom-24 left-8 h-2 w-32 rounded-full bg-[#C6A75E] opacity-60" />
+              <div className="absolute bottom-32 left-8 h-2 w-24 rounded-full bg-[#C6A75E] opacity-50" />
+              <img
+                src="/hero/hero-bag.png"
+                alt="Sacola da Conveniência 24h com bebidas, snacks e bomboniere"
+                className="relative z-10 max-h-[560px] w-auto object-contain md:translate-x-8 lg:max-h-[610px]"
+              />
             </div>
           </div>
 
-          <div className="relative min-h-72 overflow-hidden md:min-h-full">
-            <div className="absolute right-[-80px] top-[-90px] size-80 rounded-full border-[48px] border-[#C6A75E]/12" />
-            <div className="absolute bottom-[-120px] left-4 size-80 rounded-full bg-[#C6A75E]/10 blur-2xl" />
+          <div className="border-t border-[#EEE5D8] bg-[#FFFDF9] px-5 pb-5 pt-4 md:px-8 md:pt-0 lg:px-10">
+            <div className="brand-shadow translate-y-0 rounded-[1.6rem] border border-[#E8DCC8] bg-white p-3 md:-mt-8 md:p-4">
+              <div className="flex flex-col gap-3">
+                <label className="relative block">
+                  <SearchIcon className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#A88A45]" />
+                  <input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    className="brand-input h-[58px] w-full rounded-2xl border-[#E5D8C0] pl-12 pr-32 text-sm font-semibold placeholder:text-[#9A9186]"
+                    placeholder="O que você precisa agora?"
+                  />
+                  <button className="absolute right-2 top-1/2 inline-flex h-11 -translate-y-1/2 items-center rounded-2xl bg-[#1F2A44] px-5 text-sm font-bold text-white transition hover:bg-[#162038]">
+                    Buscar
+                  </button>
+                </label>
 
-            <div className="relative z-10 flex h-full min-h-72 items-center justify-center p-6 md:p-8">
-              <div className="relative h-72 w-full max-w-md">
-                <div className="absolute left-1/2 top-1/2 h-52 w-48 -translate-x-1/2 -translate-y-1/2 rounded-[2.7rem] bg-[#F6F4F1] shadow-[0_28px_70px_rgba(0,0,0,.3)]" />
-                <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-                  <BrandMark className="size-40" />
-                </div>
-
-                <div className="absolute left-[5%] top-[8%] z-30 grid size-24 place-items-center overflow-hidden rounded-[1.7rem] bg-[#E8DCC8] p-2.5 shadow-xl md:size-28">
-                  <img src="https://carrefourbrfood.vtexassets.com/arquivos/ids/193842562/salgadinho-queijo-nacho-doritos-120g-1.jpg?v=638876002921530000" alt="Doritos" className="h-full w-full object-contain" />
-                </div>
-                <div className="absolute right-[3%] top-[16%] z-30 grid size-20 place-items-center overflow-hidden rounded-[1.5rem] bg-[#C6A75E] p-2.5 shadow-xl md:size-24">
-                  <img src="https://down-br.img.susercontent.com/file/de3905e6d774d25363e21ac6a2ff7297" alt="Red Bull" className="h-full w-full object-contain" />
-                </div>
-                <div className="absolute bottom-[0%] left-[10%] z-30 grid size-20 place-items-center overflow-hidden rounded-[1.5rem] bg-[#fffdf9] p-2.5 shadow-xl md:size-24">
-                  <img src="https://images.tcdn.com.br/img/img_prod/1377318/chocolate_bis_100_8g_ao_leite_169_1_bc46a4e81dee4e6402c7608e4f4802f0.jpg" alt="Bis" className="h-full w-full object-contain" />
-                </div>
-                <div className="absolute bottom-[4%] right-[8%] z-30 grid size-24 place-items-center overflow-hidden rounded-[1.7rem] bg-[#E8DCC8] p-2 shadow-xl md:size-28">
-                  <img src="https://www.powellsnl.ca/media/uploads/gs1/06700000427_20.png" alt="Coca-Cola" className="h-full w-full object-contain" />
+                <div className="flex flex-wrap items-center gap-2 px-1">
+                  <span className="text-[11px] font-extrabold uppercase tracking-[.14em] text-[#8E8375]">Mais buscados:</span>
+                  {quickTerms.map((term) => (
+                    <button key={term} onClick={() => setQuery(term)} className="rounded-full bg-[#F4ECDF] px-4 py-2 text-sm font-bold text-[#675F55] transition hover:bg-[#E8DCC8] hover:text-[#1F2A44]">
+                      {term}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section id="buscar" className="relative z-20 -mt-2 md:-mt-8 md:px-8">
-          <div className="brand-shadow rounded-[1.4rem] border border-[#E8DCC8] bg-[#fffdf9] p-2.5 md:p-3">
-            <label className="relative block">
-              <SearchIcon className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#A88A45]" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                className="brand-input h-[52px] w-full rounded-xl pl-12 pr-4 text-sm font-semibold placeholder:text-[#9A9186] md:h-14"
-                placeholder="O que você precisa agora?"
-              />
-            </label>
-            <div className="mt-2 flex flex-wrap items-center gap-2 px-1 pb-1">
-              <span className="text-[9px] font-extrabold uppercase tracking-wide text-[#8E8375]">Mais buscados:</span>
-              {quickTerms.map((term) => (
-                <button key={term} onClick={() => setQuery(term)} className="rounded-full bg-[#F4ECDF] px-2.5 py-1 text-[9px] font-bold text-[#675F55] transition hover:bg-[#E8DCC8] hover:text-[#1F2A44]">
-                  {term}
-                </button>
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {heroHighlights.map(({ Icon, title, text }) => (
+                <div key={title} className="flex items-start gap-3 rounded-[1.4rem] border border-[#EEE5D8] bg-[#FFFDF9] p-4">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#F4ECDF] text-[#1F2A44]">
+                    <Icon className="size-5" />
+                  </span>
+                  <div>
+                    <p className="font-display text-base font-bold text-[#1F2A44]">{title}</p>
+                    <p className="mt-0.5 text-sm font-medium text-[#736C61]">{text}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="categorias" className="mt-9">
+        <section id="categorias" className="mt-10">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
               <p className="brand-eyebrow">Encontre rápido</p>
@@ -133,7 +147,7 @@ export default function Home() {
           {[
             { Icon: ClockIcon, title: "Disponível 24h", text: "Compre quando precisar." },
             { Icon: DeliveryIcon, title: "Entrega rápida", text: "Fluxo pensado para agilidade." },
-            { Icon: ShieldIcon, title: "Compra simples", text: "Poucos passos até finalizar." },
+            { Icon: TagIcon, title: "Ofertas frequentes", text: "Combos e destaques da noite." },
           ].map(({ Icon, title, text }) => (
             <div key={title} className="brand-card flex items-center gap-3 p-4">
               <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#F4ECDF] text-[#A88A45]"><Icon className="size-6" /></span>
