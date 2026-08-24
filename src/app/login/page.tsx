@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BrandLogo, BrandMark } from "@/components/brand-logo";
 import { createClient } from "@/lib/supabase/client";
 import { hasPublicSupabaseEnv } from "@/lib/config";
 
@@ -30,5 +31,29 @@ export default function LoginPage() {
     router.refresh();
   }
 
-  return <div className="grid min-h-screen place-items-center bg-[#1F2A44] p-4"><main className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-2xl"><Link href="/" className="inline-flex items-center gap-2 font-black text-[#1F2A44]"><span className="grid size-9 place-items-center rounded-xl bg-[#C6A75E]">⚡</span>Conveniência 24h</Link><p className="mt-7 text-xs font-black uppercase tracking-wider text-[#A88A45]">Equipe interna</p><h1 className="mt-1 text-3xl font-black text-[#1F2A44]">Entrar na operação</h1><p className="mt-2 text-sm text-slate-500">Clientes continuam comprando sem criar conta.</p>{!configured && <div className="mt-5 rounded-2xl bg-amber-50 p-4 text-xs font-bold text-amber-900">Supabase ainda não está configurado na Vercel. Consulte o arquivo V4_SETUP.md.</div>}{error && <div className="mt-5 rounded-2xl bg-red-50 p-4 text-xs font-bold text-red-700">{error}</div>}<form onSubmit={submit} className="mt-6 space-y-3"><input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" required className="h-12 w-full rounded-2xl border border-[#E8DCC8] px-4 outline-none focus:border-[#C6A75E]" placeholder="E-mail"/><input value={password} onChange={(e)=>setPassword(e.target.value)} type="password" required className="h-12 w-full rounded-2xl border border-[#E8DCC8] px-4 outline-none focus:border-[#C6A75E]" placeholder="Senha"/><button disabled={!configured || loading} className="flex h-12 w-full items-center justify-center rounded-2xl bg-[#1F2A44] text-sm font-black text-white disabled:opacity-40">{loading ? "ENTRANDO..." : "ENTRAR"}</button></form></main></div>;
+  return (
+    <div className="brand-grid grid min-h-screen place-items-center bg-[#1F2A44] p-4">
+      <div className="absolute left-8 top-8 hidden md:block"><BrandLogo inverted tagline /></div>
+      <main className="relative w-full max-w-md overflow-hidden rounded-[2rem] bg-[#fffdf9] p-6 shadow-[0_32px_90px_rgba(0,0,0,.32)] md:p-7">
+        <div className="absolute -right-14 -top-14 size-44 rounded-full border-[28px] border-[#C6A75E]/16" />
+        <Link href="/" className="relative inline-flex md:hidden"><BrandLogo /></Link>
+        <div className="relative mt-4 flex items-start justify-between gap-4 md:mt-0">
+          <div>
+            <p className="brand-eyebrow">Equipe interna</p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-[-.035em] text-[#1F2A44]">Entrar na operação</h1>
+            <p className="mt-2 text-sm leading-6 text-[#777066]">Acesso ao painel de pedidos, produtos e estoque.</p>
+          </div>
+          <BrandMark className="hidden size-16 shrink-0 md:block" />
+        </div>
+        {!configured && <div className="mt-5 rounded-2xl bg-[#FFF3D6] p-4 text-xs font-bold text-[#7A5A1D]">Supabase ainda não está configurado na Vercel. Consulte o arquivo V4_SETUP.md.</div>}
+        {error && <div className="mt-5 rounded-2xl bg-red-50 p-4 text-xs font-bold text-red-700">{error}</div>}
+        <form onSubmit={submit} className="mt-6 space-y-3">
+          <input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" required className="brand-input h-12 w-full rounded-2xl px-4" placeholder="E-mail" />
+          <input value={password} onChange={(e)=>setPassword(e.target.value)} type="password" required className="brand-input h-12 w-full rounded-2xl px-4" placeholder="Senha" />
+          <button disabled={!configured || loading} className="brand-btn-primary h-12 w-full text-sm disabled:opacity-40">{loading ? "ENTRANDO..." : "ENTRAR"}</button>
+        </form>
+        <Link href="/" className="mt-5 block text-center text-[10px] font-extrabold uppercase tracking-wide text-[#8C8172] hover:text-[#A88A45]">Voltar para a loja</Link>
+      </main>
+    </div>
+  );
 }
