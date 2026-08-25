@@ -49,3 +49,13 @@ Antes de publicar, execute `supabase/V6_4_SECURITY_HARDENING.sql` e siga `V6_4_S
 - Entrada, perda, avaria, ajuste e inventário com histórico.
 - Movimentações manuais restritas ao perfil admin.
 - Venda continua sendo baixada automaticamente pelo fluxo do pedido.
+
+## V6.5 — Logística e Entregas
+- Aba Entregas conectada a pedidos reais em status `ready`.
+- Cadastro de entregadores com conta Supabase e role `driver`.
+- Painel exclusivo `/entregador` e login `/entregador/login`.
+- Atribuição, início e conclusão da entrega sincronizados com o pedido.
+- Frete por distância com origem configurável e faixas editáveis.
+- Frete grátis configurável (padrão R$ 50,00).
+- Separação entre valor cobrado do cliente e repasse do entregador.
+- Correção de isolamento de roles: `driver` não é aceito em rotas/admin.

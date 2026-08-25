@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { DEFAULT_CITY, DEFAULT_STATE, DELIVERY_FEE, hasServerSupabaseEnv, STORE_SLUG } from "@/lib/config";
+import { DEFAULT_CITY, DEFAULT_STATE, hasServerSupabaseEnv, STORE_SLUG } from "@/lib/config";
+import { calculateShippingQuote } from "@/lib/shipping-server";
 import {
   checkRateLimit,
   cleanText,
@@ -24,7 +25,7 @@ function publicOrderError(message: string) {
   if (message.includes("product_unavailable")) return { code: "product_unavailable", status: 409 };
   if (message.includes("store_unavailable")) return { code: "store_unavailable", status: 409 };
   if (message.includes("invalid_payment_method")) return { code: "invalid_payment_method", status: 400 };
-  if (message.includes("security_migration")) return { code: "security_migration_required", status: 503 };
+  if (message.includes("security_migration") || message.includes("create_order_v65")) return { code: "security_migration_required", status: 503 };
   return { code: "order_rejected", status: 400 };
 }
 
@@ -110,10 +111,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "invalid_change" }, { status: 400 });
     }
 
+    const shipping = await calculateShippingQuote(normalizedItems, {
+      postal_code: postalCode,
+      street,
+      number,
+      neighborhood,
+      city,
+      state,
+    });
+    if (!shipping.available) {
+      return NextResponse.json({ error: "delivery_unavailable", quote: shipping }, { status: 422, headers: { "Cache-Control": "no-store" } });
+    }
+
     const payload = {
       client_order_key: body.client_order_key,
       store_slug: STORE_SLUG,
-      delivery_fee: DELIVERY_FEE,
+      delivery_fee: shipping.fee,
+      delivery_distance_km: shipping.distanceKm,
+      delivery_quote_source: shipping.source,
+      driver_payout: shipping.driverPayout,
       customer: { name, phone },
       address: {
         postal_code: postalCode,
@@ -132,10 +148,10 @@ export async function POST(request: NextRequest) {
     };
 
     const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc("create_order_v64", { p_payload: payload });
+    const { data, error } = await supabase.rpc("create_order_v65", { p_payload: payload });
 
     if (error) {
-      console.error("create_order_v64", error);
+      console.error("create_order_v65", error);
       const safe = publicOrderError(error.message || "order_failed");
       return NextResponse.json({ error: safe.code }, { status: safe.status, headers: { "Cache-Control": "no-store" } });
     }
@@ -150,7 +166,7 @@ export async function POST(request: NextRequest) {
     }
     console.error("create_order_error", error);
     const message = error instanceof Error ? error.message : String(error ?? "");
-    if (message.includes("check_rate_limit_v64") || message.includes("create_order_v64")) {
+    if (message.includes("check_rate_limit_v64") || message.includes("create_order_v65")) {
       return NextResponse.json({ error: "security_migration_required" }, { status: 503, headers: { "Cache-Control": "no-store" } });
     }
     return NextResponse.json({ error: "order_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } });

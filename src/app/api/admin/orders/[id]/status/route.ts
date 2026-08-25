@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { hasServerSupabaseEnv } from "@/lib/config";
 import { cleanText, isUuid, readJsonBody, RequestBodyTooLargeError, sameOriginOrNoOrigin } from "@/lib/security-server";
 
-const allowed = new Set(["received", "picking", "ready", "out_for_delivery", "delivered", "cancelled"]);
+const allowed = new Set(["received", "picking", "ready", "cancelled"]);
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   if (!hasServerSupabaseEnv()) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });

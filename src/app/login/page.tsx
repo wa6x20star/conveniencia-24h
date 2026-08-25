@@ -27,7 +27,8 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    router.push("/admin/estoque");
+    const role = result.data.user?.app_metadata?.role;
+    router.push(role === "driver" ? "/entregador" : "/admin/estoque");
     router.refresh();
   }
 

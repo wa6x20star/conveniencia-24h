@@ -27,3 +27,7 @@ O arquivo `supabase/migrations/001_initial_schema.sql` contém o primeiro esquem
 ## V3
 
 Checkout com envio do pedido por WhatsApp e catálogo ampliado com fotos reais de referência. Veja `ATUALIZACAO_V3.md`.
+
+## V6.5 — Logística e Entregas
+
+A V6.5 integra pedidos reais com entregadores, adiciona conta `driver`, cálculo de frete por distância e frete grátis configurável. Leia `V6_5_LOGISTICA_SETUP.md` e execute `supabase/V6_5_LOGISTICS.sql` depois da V6.4.

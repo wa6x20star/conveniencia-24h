@@ -253,17 +253,3 @@ export const products: Product[] = [
     active: true,
   },
 ];
-
-export const adminOrders = [
-  { id: "#000157", customer: "Mariana Alves", items: 5, total: 64.8, payment: "PIX • PAGO", time: "21:32", status: "NOVO" },
-  { id: "#000156", customer: "Rafael Lima", items: 3, total: 31.47, payment: "DINHEIRO", time: "21:27", status: "NOVO" },
-  { id: "#000155", customer: "João Silva", items: 7, total: 82.35, payment: "PIX • PAGO", time: "21:19", status: "SEPARANDO" },
-  { id: "#000154", customer: "Ana Paula", items: 2, total: 28.98, payment: "CARTÃO NA ENTREGA", time: "21:11", status: "PRONTO" },
-  { id: "#000153", customer: "Carlos Souza", items: 6, total: 71.2, payment: "PIX • PAGO", time: "20:58", status: "EM ENTREGA" },
-];
-
-export const lowStock = [
-  { product: "Gelo 5 kg", stock: 4, min: 6, location: "Freezer 01" },
-  { product: "Ruffles Original 76g", stock: 5, min: 8, location: "Prateleira 03" },
-  { product: "Red Bull Energy Drink 250ml", stock: 6, min: 10, location: "Geladeira 01 / B" },
-];
