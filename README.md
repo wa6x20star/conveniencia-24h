@@ -39,3 +39,7 @@ A V6.6 adiciona recuperação segura por número do pedido + telefone e mantém 
 ## V6.7 — Painel do Entregador
 
 A V6.7 profissionaliza `/entregador` com ganhos registrados por período, histórico, km percorridos, média por entrega, atualização automática e atalhos para WhatsApp, Google Maps e Waze. O painel administrativo também passa a mostrar o desempenho mensal de cada entregador. Leia `V6_7_PAINEL_ENTREGADOR_SETUP.md`.
+
+## V6.7.1 — Portal e Gestão de Entregadores
+
+A V6.7.1 adiciona um acesso rápido ao Portal do Entregador no painel de Entregas, QR Code e cópia do link, visão resumida da equipe, edição de nome/telefone, desativação e reativação sem perder histórico, destaque de entrega ativa e melhorias no login do entregador. Leia `V6_7_1_PORTAL_GESTAO_ENTREGADORES_SETUP.md`. Não há nova migration SQL obrigatória nesta versão.

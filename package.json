@@ -1,6 +1,6 @@
 {
   "name": "conveniencia-24h",
-  "version": "0.6.7",
+  "version": "0.6.7-1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,8 @@
     "@supabase/supabase-js": "2.112.3",
     "next": "16.3.2",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
@@ -23,6 +24,7 @@
     "eslint": "9.39.1",
     "eslint-config-next": "16.3.2",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "@types/qrcode": "1.5.5"
   }
 }

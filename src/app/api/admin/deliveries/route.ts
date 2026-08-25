@@ -32,7 +32,7 @@ export async function GET() {
     if (storeError || !store) throw storeError || new Error("store_not_found");
 
     const [{ data: drivers, error: driversError }, { data: readyOrders, error: ordersError }, { data: deliveries, error: deliveriesError }] = await Promise.all([
-      supabase.from("drivers").select("id,user_id,status,active,created_at").eq("store_id", store.id).eq("active", true).order("created_at"),
+      supabase.from("drivers").select("id,user_id,status,active,created_at,updated_at").eq("store_id", store.id).order("created_at"),
       supabase.from("orders").select("id,order_number,status,payment_method,payment_status,total,delivery_fee,delivery_distance_km,driver_payout,customer_name,neighborhood,city,created_at").eq("store_id", store.id).eq("status", "ready").order("created_at"),
       supabase.from("deliveries").select("id,order_id,driver_id,status,distance_km,customer_fee,driver_payout,assigned_at,started_at,delivered_at").in("status", ["assigned", "started"]).order("assigned_at", { ascending: false }),
     ]);
@@ -42,11 +42,11 @@ export async function GET() {
 
     const driverUserIds = (drivers ?? []).map((item: any) => item.user_id);
     const { data: profiles } = driverUserIds.length
-      ? await supabase.from("profiles").select("id,full_name,phone").in("id", driverUserIds)
+      ? await supabase.from("profiles").select("id,full_name,phone,active").in("id", driverUserIds)
       : { data: [] as any[] };
     const profileById = new Map((profiles ?? []).map((profile: any) => [profile.id, profile]));
 
-    const activeOrderIds = new Set((deliveries ?? []).filter((delivery: any) => delivery.status !== "cancelled").map((delivery: any) => delivery.order_id));
+    const activeOrderIds = new Set((deliveries ?? []).map((delivery: any) => delivery.order_id));
     const pending = (readyOrders ?? []).filter((order: any) => !activeOrderIds.has(order.id));
 
     const deliveryOrderIds = (deliveries ?? []).map((delivery: any) => delivery.order_id);
@@ -76,15 +76,29 @@ export async function GET() {
       statsByDriver.set(row.driver_id, current);
     }
 
+    const activeDeliveryByDriver = new Map<string, any>();
+    for (const delivery of deliveries ?? []) {
+      if (!activeDeliveryByDriver.has(delivery.driver_id)) {
+        activeDeliveryByDriver.set(delivery.driver_id, {
+          id: delivery.id,
+          status: delivery.status,
+          order: orderById.get(delivery.order_id) ?? null,
+        });
+      }
+    }
+
     return NextResponse.json({
       store,
       drivers: (drivers ?? []).map((driver: any) => ({
         ...driver,
         profile: profileById.get(driver.user_id) ?? null,
         monthStats: statsByDriver.get(driver.id) ?? { deliveries: 0, payout: 0, distanceKm: 0 },
+        activeDelivery: activeDeliveryByDriver.get(driver.id) ?? null,
       })),
       pendingOrders: pending,
-      activeDeliveries: (deliveries ?? []).filter((delivery: any) => orderById.has(delivery.order_id)).map((delivery: any) => ({ ...delivery, order: orderById.get(delivery.order_id) ?? null })),
+      activeDeliveries: (deliveries ?? [])
+        .filter((delivery: any) => orderById.has(delivery.order_id))
+        .map((delivery: any) => ({ ...delivery, order: orderById.get(delivery.order_id) ?? null })),
       role: staff.role,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
