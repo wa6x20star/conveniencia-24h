@@ -11,6 +11,16 @@ async function requireStaff() {
   return staff.user && staff.role ? staff : null;
 }
 
+function currentMonthStartIso() {
+  const key = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Recife",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  return `${key.slice(0, 7)}-01T03:00:00.000Z`;
+}
+
 export async function GET() {
   if (!hasServerSupabaseEnv()) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
   const staff = await requireStaff();
@@ -45,9 +55,34 @@ export async function GET() {
       : { data: [] as any[] };
     const orderById = new Map((deliveryOrders ?? []).map((order: any) => [order.id, order]));
 
+    const driverIds = (drivers ?? []).map((driver: any) => driver.id);
+    const { data: completedThisMonth, error: completedError } = driverIds.length
+      ? await supabase
+          .from("deliveries")
+          .select("driver_id,driver_payout,distance_km,delivered_at")
+          .in("driver_id", driverIds)
+          .eq("status", "delivered")
+          .gte("delivered_at", currentMonthStartIso())
+          .order("delivered_at", { ascending: false })
+      : { data: [] as any[], error: null };
+    if (completedError) throw completedError;
+
+    const statsByDriver = new Map<string, { deliveries: number; payout: number; distanceKm: number }>();
+    for (const row of completedThisMonth ?? []) {
+      const current = statsByDriver.get(row.driver_id) ?? { deliveries: 0, payout: 0, distanceKm: 0 };
+      current.deliveries += 1;
+      current.payout += Number(row.driver_payout || 0);
+      current.distanceKm += Number(row.distance_km || 0);
+      statsByDriver.set(row.driver_id, current);
+    }
+
     return NextResponse.json({
       store,
-      drivers: (drivers ?? []).map((driver: any) => ({ ...driver, profile: profileById.get(driver.user_id) ?? null })),
+      drivers: (drivers ?? []).map((driver: any) => ({
+        ...driver,
+        profile: profileById.get(driver.user_id) ?? null,
+        monthStats: statsByDriver.get(driver.id) ?? { deliveries: 0, payout: 0, distanceKm: 0 },
+      })),
       pendingOrders: pending,
       activeDeliveries: (deliveries ?? []).filter((delivery: any) => orderById.has(delivery.order_id)).map((delivery: any) => ({ ...delivery, order: orderById.get(delivery.order_id) ?? null })),
       role: staff.role,

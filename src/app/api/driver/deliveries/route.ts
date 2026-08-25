@@ -6,9 +6,53 @@ import { cleanText, isUuid, readJsonBody, RequestBodyTooLargeError, sameOriginOr
 
 export const dynamic = "force-dynamic";
 
+const RECIFE_TIME_ZONE = "America/Recife";
+
 async function requireDriver() {
   const staff = await getCurrentStaff(["driver"]);
   return staff.user && staff.role === "driver" ? staff : null;
+}
+
+function localDateKey(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: RECIFE_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+function keyToUtcDate(key: string) {
+  return new Date(`${key}T03:00:00.000Z`);
+}
+
+function addDaysToKey(key: string, days: number) {
+  const date = new Date(`${key}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function startOfWeekKey(todayKey: string) {
+  const date = new Date(`${todayKey}T12:00:00.000Z`);
+  const day = date.getUTCDay();
+  const daysSinceMonday = day === 0 ? 6 : day - 1;
+  return addDaysToKey(todayKey, -daysSinceMonday);
+}
+
+function startOfMonthKey(todayKey: string) {
+  return `${todayKey.slice(0, 7)}-01`;
+}
+
+function summarizeDeliveries(rows: any[], minKey: string) {
+  const filtered = rows.filter((row) => row.delivered_at && localDateKey(new Date(row.delivered_at)) >= minKey);
+  const payout = filtered.reduce((sum, row) => sum + Number(row.driver_payout || 0), 0);
+  const distance = filtered.reduce((sum, row) => sum + Number(row.distance_km || 0), 0);
+  return {
+    deliveries: filtered.length,
+    payout,
+    distanceKm: distance,
+    averagePayout: filtered.length ? payout / filtered.length : 0,
+  };
 }
 
 export async function GET() {
@@ -24,15 +68,31 @@ export async function GET() {
     ]);
     if (driverError || !driver || !driver.active) return NextResponse.json({ error: "driver_not_registered" }, { status: 403 });
 
-    const { data: delivery, error: deliveryError } = await supabase
-      .from("deliveries")
-      .select("id,order_id,status,distance_km,customer_fee,driver_payout,assigned_at,started_at")
-      .eq("driver_id", driver.id)
-      .in("status", ["assigned", "started"])
-      .order("assigned_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const todayKey = localDateKey();
+    const weekKey = startOfWeekKey(todayKey);
+    const monthKey = startOfMonthKey(todayKey);
+    const historyFromKey = addDaysToKey(monthKey, -35);
+
+    const [{ data: delivery, error: deliveryError }, { data: completed, error: completedError }] = await Promise.all([
+      supabase
+        .from("deliveries")
+        .select("id,order_id,status,distance_km,customer_fee,driver_payout,assigned_at,started_at")
+        .eq("driver_id", driver.id)
+        .in("status", ["assigned", "started"])
+        .order("assigned_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("deliveries")
+        .select("id,order_id,distance_km,driver_payout,delivered_at")
+        .eq("driver_id", driver.id)
+        .eq("status", "delivered")
+        .gte("delivered_at", keyToUtcDate(historyFromKey).toISOString())
+        .order("delivered_at", { ascending: false })
+        .limit(1000),
+    ]);
     if (deliveryError) throw deliveryError;
+    if (completedError) throw completedError;
 
     let order: any = null;
     let items: any[] = [];
@@ -47,7 +107,40 @@ export async function GET() {
       items = itemData ?? [];
     }
 
-    return NextResponse.json({ driver: { ...driver, profile }, delivery: delivery ? { ...delivery, order, items } : null }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    const recentCompleted = (completed ?? []).slice(0, 12);
+    const historyOrderIds = recentCompleted.map((row: any) => row.order_id);
+    const { data: historyOrders, error: historyOrdersError } = historyOrderIds.length
+      ? await supabase.from("orders").select("id,order_number,neighborhood,city").in("id", historyOrderIds)
+      : { data: [] as any[], error: null };
+    if (historyOrdersError) throw historyOrdersError;
+    const historyOrderById = new Map((historyOrders ?? []).map((row: any) => [row.id, row]));
+
+    const stats = {
+      today: summarizeDeliveries(completed ?? [], todayKey),
+      week: summarizeDeliveries(completed ?? [], weekKey),
+      month: summarizeDeliveries(completed ?? [], monthKey),
+    };
+
+    const history = recentCompleted.map((row: any) => {
+      const historyOrder = historyOrderById.get(row.order_id) as any;
+      return {
+        id: row.id,
+        orderNumber: historyOrder?.order_number ?? null,
+        neighborhood: historyOrder?.neighborhood ?? null,
+        city: historyOrder?.city ?? null,
+        distanceKm: Number(row.distance_km || 0),
+        payout: Number(row.driver_payout || 0),
+        deliveredAt: row.delivered_at,
+      };
+    });
+
+    return NextResponse.json({
+      driver: { ...driver, profile },
+      delivery: delivery ? { ...delivery, order, items } : null,
+      stats,
+      history,
+      generatedAt: new Date().toISOString(),
+    }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   } catch (error) {
     console.error("driver_delivery_get", error);
     return NextResponse.json({ error: "delivery_unavailable" }, { status: 500 });
@@ -79,8 +172,10 @@ export async function POST(request: NextRequest) {
     if (action === "start" || action === "delivered") {
       const deliveryId = cleanText(body.deliveryId, 40);
       if (!isUuid(deliveryId)) return NextResponse.json({ error: "invalid_delivery" }, { status: 400 });
-      const { data: owned } = await supabase.from("deliveries").select("id").eq("id", deliveryId).eq("driver_id", driver.id).maybeSingle();
+      const { data: owned } = await supabase.from("deliveries").select("id,status").eq("id", deliveryId).eq("driver_id", driver.id).maybeSingle();
       if (!owned) return NextResponse.json({ error: "delivery_not_found" }, { status: 404 });
+      if (action === "start" && owned.status !== "assigned") return NextResponse.json({ error: "delivery_already_started" }, { status: 409 });
+      if (action === "delivered" && owned.status !== "started") return NextResponse.json({ error: "delivery_not_started" }, { status: 409 });
       const target = action === "start" ? "started" : "delivered";
       const { data, error } = await supabase.rpc("set_delivery_status_v65", { p_delivery_id: deliveryId, p_status: target, p_user_id: staff.user!.id });
       if (error) return NextResponse.json({ error: error.message || "delivery_update_failed" }, { status: 409 });

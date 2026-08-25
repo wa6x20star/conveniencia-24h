@@ -59,3 +59,17 @@ Antes de publicar, execute `supabase/V6_4_SECURITY_HARDENING.sql` e siga `V6_4_S
 - Frete grátis configurável (padrão R$ 50,00).
 - Separação entre valor cobrado do cliente e repasse do entregador.
 - Correção de isolamento de roles: `driver` não é aceito em rotas/admin.
+
+## V6.6 — Acompanhamento de Pedidos
+- Link individual de acompanhamento na confirmação do pedido.
+- Busca segura por número do pedido + telefone.
+- Recuperação do último pedido no mesmo aparelho.
+
+## V6.7 — Painel do Entregador
+- Resumo de ganhos registrados: hoje, semana e mês.
+- Histórico das entregas concluídas.
+- Indicadores de quantidade, km e média por entrega.
+- Atualização automática a cada 30 segundos.
+- Pagamento destacado para evitar cobrança duplicada.
+- Atalhos de contato, Google Maps e Waze.
+- Resumo mensal de desempenho dos entregadores no painel administrativo.
