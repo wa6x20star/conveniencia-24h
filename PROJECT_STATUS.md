@@ -1,3 +1,11 @@
+# V6.4 — Security Hardening
+
+A V6.4 mantém a interface da V6.3 e adiciona proteção contra spam de pedidos, idempotência, expiração de reservas, validação forte, tracking com menos dados pessoais, uploads validados e headers de segurança.
+
+Antes de publicar, execute `supabase/V6_4_SECURITY_HARDENING.sql` e siga `V6_4_SECURITY_SETUP.md`.
+
+---
+
 # Status físico do projeto
 
 ## Já criado

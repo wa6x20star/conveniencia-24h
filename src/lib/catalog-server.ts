@@ -51,8 +51,7 @@ export async function loadCatalogFromDatabase(includeInactive = false) {
 
     const onHand = Number(inventory?.on_hand ?? 0);
     const reserved = Number(inventory?.reserved ?? 0);
-
-    return [{
+    const base = {
       id: Number(product.public_id),
       sku: product.sku,
       name: product.name,
@@ -60,17 +59,25 @@ export async function loadCatalogFromDatabase(includeInactive = false) {
       price: Number(row.price ?? 0),
       oldPrice: row.compare_at_price == null ? undefined : Number(row.compare_at_price),
       stock: Math.max(0, onHand - reserved),
-      onHand,
-      reserved,
       minimumStock: Number(row.minimum_stock ?? 0),
       badge: row.badge ?? "",
       emoji: "🛍️",
       image: product.image_url ?? "",
       active: row.active !== false && product.active !== false,
+    };
+
+    // Campos internos só aparecem nas APIs administrativas autenticadas.
+    if (!includeInactive) return [base];
+
+    return [{
+      ...base,
+      onHand,
+      reserved,
       storeProductId: row.id,
       location: [row.sector, row.shelf].filter(Boolean).join(" / "),
     }];
   });
 
-  return { store, products };
+  const publicStore = includeInactive ? store : { name: store.name, slug: store.slug, status: store.status };
+  return { store: publicStore, products };
 }

@@ -3,6 +3,7 @@ import { getCurrentStaff } from "@/lib/auth";
 import { loadCatalogFromDatabase } from "@/lib/catalog-server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasServerSupabaseEnv } from "@/lib/config";
+import { cleanText, expireStaleReservationsBestEffort, isUuid, readJsonBody, RequestBodyTooLargeError, sameOriginOrNoOrigin } from "@/lib/security-server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export async function GET() {
   if (!staff) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   try {
+    await expireStaleReservationsBestEffort();
     const catalog = await loadCatalogFromDatabase(true);
     const supabase = createAdminClient();
     const ids = catalog.products.map((product: any) => product.storeProductId).filter(Boolean);
@@ -105,14 +107,19 @@ export async function POST(request: NextRequest) {
 
   const staff = await requireAdmin();
   if (!staff) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!sameOriginOrNoOrigin(request)) return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
 
   try {
-    const body = await request.json();
-    const storeProductId = String(body.storeProductId ?? "");
-    const action = String(body.action ?? "");
-    const reason = String(body.reason ?? "").trim();
+    const body = await readJsonBody<any>(request, 8_000);
+    const storeProductId = cleanText(body.storeProductId, 40);
+    const action = cleanText(body.action, 20);
+    const reason = cleanText(body.reason, 300);
     const quantity = body.quantity == null || body.quantity === "" ? null : Number(body.quantity);
     const targetStock = body.targetStock == null || body.targetStock === "" ? null : Number(body.targetStock);
+
+    if (!isUuid(storeProductId)) return NextResponse.json({ error: "invalid_product" }, { status: 400 });
+    if (quantity != null && (!Number.isSafeInteger(quantity) || quantity > 100_000)) return NextResponse.json({ error: "quantity_invalid" }, { status: 400 });
+    if (targetStock != null && (!Number.isSafeInteger(targetStock) || targetStock > 1_000_000)) return NextResponse.json({ error: "target_stock_invalid" }, { status: 400 });
 
     if (!storeProductId || !["entry", "loss", "damage", "adjustment", "inventory"].includes(action)) {
       return NextResponse.json({ error: "invalid_movement" }, { status: 400 });
@@ -147,6 +154,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ inventory: data });
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) return NextResponse.json({ error: "request_too_large" }, { status: 413 });
     console.error("inventory_post", error);
     return NextResponse.json({ error: "stock_update_failed" }, { status: 500 });
   }

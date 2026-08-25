@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentStaff } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasServerSupabaseEnv } from "@/lib/config";
+import { expireStaleReservationsBestEffort } from "@/lib/security-server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export async function GET() {
   if (!staff.user || !staff.role) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   try {
+    await expireStaleReservationsBestEffort();
     const supabase = createAdminClient();
     const { data: orders, error } = await supabase
       .from("orders")
