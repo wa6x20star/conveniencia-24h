@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { CartIcon, HomeIcon, PackageIcon, SearchIcon, UserIcon } from "@/components/brand-icons";
+import { CartIcon, HomeIcon, PackageIcon, SearchIcon, TagIcon } from "@/components/brand-icons";
 
 const items = [
   { href: "/", label: "Início", Icon: HomeIcon },
   { href: "/#buscar", label: "Buscar", Icon: SearchIcon },
   { href: "/carrinho", label: "Carrinho", Icon: CartIcon },
-  { href: "/pedido/demo", label: "Pedidos", Icon: PackageIcon },
-  { href: "/login", label: "Conta", Icon: UserIcon },
+  { href: "/pedido", label: "Pedidos", Icon: PackageIcon },
+  { href: "/#ofertas", label: "Ofertas", Icon: TagIcon },
 ];
 
 export function BottomNav() {

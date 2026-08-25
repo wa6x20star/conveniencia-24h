@@ -16,7 +16,7 @@ export function StoreHeader() {
           <div className="flex items-center gap-6 text-[#E8DCC8]">
             <span>Entrega rápida</span>
             <span>Compra simples</span>
-            <Link href="/pedido/demo" className="transition hover:text-[#C6A75E]">Acompanhar pedido</Link>
+            <Link href="/pedido" className="transition hover:text-[#C6A75E]">Acompanhar pedido</Link>
           </div>
         </div>
       </div>
@@ -35,7 +35,7 @@ export function StoreHeader() {
           <Link href="/#categorias" className="transition hover:text-[#A88A45]">Categorias</Link>
           <Link href="/#mais-vendidos" className="transition hover:text-[#A88A45]">Mais vendidos</Link>
           <Link href="/#ofertas" className="transition hover:text-[#A88A45]">Ofertas</Link>
-          <Link href="/pedido/demo" className="transition hover:text-[#A88A45]">Meus pedidos</Link>
+          <Link href="/pedido" className="transition hover:text-[#A88A45]">Acompanhar pedido</Link>
         </nav>
 
         <div className="hidden min-w-0 border-l border-[#E8DCC8] pl-5 md:block">

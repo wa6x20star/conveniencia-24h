@@ -34,16 +34,42 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tok
 
     if (error || !order) return NextResponse.json({ error: "order_not_found" }, { status: 404 });
 
-    const [{ data: items }, { data: history }] = await Promise.all([
+    const [{ data: items }, { data: history }, { data: delivery }] = await Promise.all([
       supabase.from("order_items").select("id,product_name,quantity,unit_price,total_price").eq("order_id", order.id).order("created_at"),
       supabase.from("order_status_history").select("status,created_at").eq("order_id", order.id).order("created_at"),
+      supabase
+        .from("deliveries")
+        .select("driver_id,status,assigned_at,started_at,delivered_at")
+        .eq("order_id", order.id)
+        .neq("status", "cancelled")
+        .order("assigned_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
+
+    let driverName: string | null = null;
+    if (delivery?.driver_id) {
+      const { data: driver } = await supabase.from("drivers").select("user_id").eq("id", delivery.driver_id).maybeSingle();
+      if (driver?.user_id) {
+        const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", driver.user_id).maybeSingle();
+        driverName = profile?.full_name ? firstNameOnly(profile.full_name) : null;
+      }
+    }
 
     const publicOrder = {
       ...order,
       customer_name: firstNameOnly(order.customer_name),
       items: items ?? [],
       history: history ?? [],
+      delivery: delivery
+        ? {
+            status: delivery.status,
+            assigned_at: delivery.assigned_at,
+            started_at: delivery.started_at,
+            delivered_at: delivery.delivered_at,
+            driver_name: driverName,
+          }
+        : null,
     };
 
     return NextResponse.json(

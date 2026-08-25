@@ -12,13 +12,14 @@ const LAST_ORDER_KEY = "conveniencia24h.lastOrder.v2";
 const steps = [["received","Pedido recebido"],["picking","Em separação"],["ready","Pedido pronto"],["out_for_delivery","Saiu para entrega"],["delivered","Entregue"]] as const;
 const paymentLabels: Record<string,string> = { pix:"PIX", cash:"Dinheiro", card_on_delivery:"Cartão na entrega" };
 
-type Order = { order_number:number; status:string; payment_method:string; payment_status:string; subtotal:number; delivery_fee:number; total:number; customer_name:string; items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[]; history:{status:string;created_at:string}[]; cancellation_reason?:string };
+type Order = { order_number:number; status:string; payment_method:string; payment_status:string; subtotal:number; delivery_fee:number; total:number; customer_name:string; items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[]; history:{status:string;created_at:string}[]; cancellation_reason?:string; delivery?:{status:string;assigned_at?:string;started_at?:string;delivered_at?:string;driver_name?:string|null}|null };
 
 export default function TrackingPage() {
   const params = useParams<{ token: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [local, setLocal] = useState<any>(null);
   const [message, setMessage] = useState("");
+  const [notFound, setNotFound] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -26,8 +27,10 @@ export default function TrackingPage() {
       if (!response.ok) throw new Error("not_remote");
       const data = await response.json();
       setOrder(data.order);
+      setNotFound(false);
       setMessage("");
     } catch {
+      setNotFound(true);
       try {
         const stored = localStorage.getItem(LAST_ORDER_KEY);
         if (stored) {
@@ -62,6 +65,14 @@ export default function TrackingPage() {
               </div>
             )}
 
+            {order.delivery?.driver_name && (order.status === "out_for_delivery" || order.delivery.status === "started") && (
+              <div className="mt-5 rounded-2xl bg-[#E8DCC8] p-4">
+                <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#8E8375]">Sua entrega</p>
+                <p className="mt-1 font-display text-base font-bold text-[#1F2A44]">{order.delivery.driver_name} está levando seu pedido.</p>
+                {order.delivery.started_at && <p className="mt-1 text-xs text-[#777066]">Saiu para entrega às {new Date(order.delivery.started_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.</p>}
+              </div>
+            )}
+
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl bg-[#F4ECDF] p-3"><PackageIcon className="size-5 text-[#A88A45]"/><p className="mt-2 text-[9px] font-extrabold uppercase text-[#8E8375]">Cliente</p><strong className="text-sm">{order.customer_name}</strong></div>
               <div className="rounded-2xl bg-[#F4ECDF] p-3"><ShieldIcon className="size-5 text-[#A88A45]"/><p className="mt-2 text-[9px] font-extrabold uppercase text-[#8E8375]">Pagamento</p><strong className="text-sm">{paymentLabels[order.payment_method] || order.payment_method}</strong></div>
@@ -70,7 +81,7 @@ export default function TrackingPage() {
 
             <div className="mt-4 rounded-2xl border border-[#E8DCC8] p-4"><p className="brand-eyebrow">Itens do pedido</p><div className="mt-3 space-y-2">{order.items.map(item => <div key={item.id} className="flex justify-between gap-4 text-sm"><span>{item.quantity}x {item.product_name}</span><strong>{brl.format(Number(item.total_price))}</strong></div>)}</div></div>
             <a href={`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(`Olá! Tenho uma dúvida sobre o pedido #${String(order.order_number).padStart(6,"0")}.`)}`} target="_blank" className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#25D366] text-sm font-extrabold text-[#113A20]">FALAR COM A LOJA</a>
-          </> : <><PackageIcon className="size-12 text-[#C6A75E]"/><h1 className="mt-4 text-3xl font-extrabold">Carregando pedido...</h1><p className="mt-2 text-sm text-[#777066]">Se o pedido acabou de ser criado, aguarde alguns segundos.</p></>}
+          </> : notFound ? <><PackageIcon className="size-12 text-[#C6A75E]"/><h1 className="mt-4 text-3xl font-extrabold">Pedido não localizado.</h1><p className="mt-2 text-sm text-[#777066]">O link pode estar incorreto ou expirado. Você ainda pode localizar o pedido pelo número e pelo WhatsApp utilizado na compra.</p><Link href="/pedido" className="mt-5 flex h-12 items-center justify-center rounded-2xl bg-[#C6A75E] text-sm font-extrabold text-[#1F2A44]">LOCALIZAR MEU PEDIDO</Link></> : <><PackageIcon className="size-12 text-[#C6A75E]"/><h1 className="mt-4 text-3xl font-extrabold">Carregando pedido...</h1><p className="mt-2 text-sm text-[#777066]">Se o pedido acabou de ser criado, aguarde alguns segundos.</p></>}
         </div>
       </main>
     </div>
