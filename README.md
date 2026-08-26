@@ -1,3 +1,5 @@
+> Versão atual do pacote: **V6.8.1 — Confirmação de Entrega**
+
 # Conveniência 24h
 
 Base física inicial da plataforma de conveniência 100% online com entrega 24h.

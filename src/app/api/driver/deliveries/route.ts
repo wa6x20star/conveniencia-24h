@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentStaff } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hasServerSupabaseEnv } from "@/lib/config";
-import { cleanText, isUuid, readJsonBody, RequestBodyTooLargeError, sameOriginOrNoOrigin } from "@/lib/security-server";
+import { checkRateLimit, cleanText, digitsOnly, isUuid, readJsonBody, RequestBodyTooLargeError, sameOriginOrNoOrigin } from "@/lib/security-server";
+import { hashDeliveryConfirmationCode } from "@/lib/delivery-confirmation-server";
 
 export const dynamic = "force-dynamic";
 
@@ -100,15 +101,19 @@ export async function GET() {
 
     let order: any = null;
     let items: any[] = [];
+    let confirmation: any = { enabled: false, status: "unavailable" };
     if (delivery) {
-      const [{ data: orderData, error: orderError }, { data: itemData, error: itemError }] = await Promise.all([
+      const [{ data: orderData, error: orderError }, { data: itemData, error: itemError }, confirmationResult] = await Promise.all([
         supabase.from("orders").select("id,order_number,status,payment_method,payment_status,total,delivery_fee,customer_name,customer_phone,postal_code,street,number,complement,neighborhood,city,state,address_reference,notes").eq("id", delivery.order_id).single(),
         supabase.from("order_items").select("product_name,quantity").eq("order_id", delivery.order_id).order("created_at"),
+        supabase.from("delivery_confirmations").select("status,attempts,locked_until,proof_reason,proof_note,proof_submitted_at,review_note,payment_confirmed").eq("order_id", delivery.order_id).maybeSingle(),
       ]);
       if (orderError) throw orderError;
       if (itemError) throw itemError;
       order = orderData;
       items = itemData ?? [];
+      if (!confirmationResult.error && confirmationResult.data) confirmation = { enabled: true, ...confirmationResult.data };
+      else if (confirmationResult.error?.code !== "42P01") throw confirmationResult.error;
     }
 
     const recentCompleted = (completed ?? []).slice(0, 12);
@@ -213,7 +218,7 @@ export async function GET() {
 
     return NextResponse.json({
       driver: { ...driver, profile },
-      delivery: delivery ? { ...delivery, order, items } : null,
+      delivery: delivery ? { ...delivery, order, items, confirmation } : null,
       stats,
       history,
       financial,
@@ -247,17 +252,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status });
     }
 
-    if (action === "start" || action === "delivered") {
+    if (action === "start") {
       const deliveryId = cleanText(body.deliveryId, 40);
       if (!isUuid(deliveryId)) return NextResponse.json({ error: "invalid_delivery" }, { status: 400 });
       const { data: owned } = await supabase.from("deliveries").select("id,status").eq("id", deliveryId).eq("driver_id", driver.id).maybeSingle();
       if (!owned) return NextResponse.json({ error: "delivery_not_found" }, { status: 404 });
-      if (action === "start" && owned.status !== "assigned") return NextResponse.json({ error: "delivery_already_started" }, { status: 409 });
-      if (action === "delivered" && owned.status !== "started") return NextResponse.json({ error: "delivery_not_started" }, { status: 409 });
-      const target = action === "start" ? "started" : "delivered";
-      const { data, error } = await supabase.rpc("set_delivery_status_v65", { p_delivery_id: deliveryId, p_status: target, p_user_id: staff.user!.id });
+      if (owned.status !== "assigned") return NextResponse.json({ error: "delivery_already_started" }, { status: 409 });
+      const { data, error } = await supabase.rpc("set_delivery_status_v65", { p_delivery_id: deliveryId, p_status: "started", p_user_id: staff.user!.id });
       if (error) return NextResponse.json({ error: error.message || "delivery_update_failed" }, { status: 409 });
       return NextResponse.json({ delivery: data });
+    }
+
+    if (action === "delivered") {
+      return NextResponse.json({ error: "delivery_confirmation_required" }, { status: 409 });
+    }
+
+    if (action === "confirm_code") {
+      const rate = await checkRateLimit(request, "driver-confirm-delivery", 20, 600, 900);
+      if (!rate.allowed) return NextResponse.json({ error: "too_many_confirmation_attempts" }, { status: 429, headers: { "Retry-After": String(rate.retryAfter) } });
+
+      const deliveryId = cleanText(body.deliveryId, 40);
+      const code = digitsOnly(body.code, 6);
+      const paymentReceived = body.paymentReceived === true;
+      if (!isUuid(deliveryId) || code.length !== 6) return NextResponse.json({ error: "invalid_confirmation_code" }, { status: 400 });
+
+      const { data: owned } = await supabase.from("deliveries").select("id,status,order_id").eq("id", deliveryId).eq("driver_id", driver.id).maybeSingle();
+      if (!owned) return NextResponse.json({ error: "delivery_not_found" }, { status: 404 });
+      if (owned.status !== "started") return NextResponse.json({ error: "delivery_not_started" }, { status: 409 });
+
+      const { data: orderData, error: orderError } = await supabase.from("orders").select("client_order_key").eq("id", owned.order_id).single();
+      if (orderError || !orderData?.client_order_key) return NextResponse.json({ error: "confirmation_not_configured" }, { status: 409 });
+
+      const codeHash = hashDeliveryConfirmationCode(String(orderData.client_order_key), code);
+      const { data, error } = await supabase.rpc("confirm_delivery_code_v681", {
+        p_delivery_id: deliveryId,
+        p_code_hash: codeHash,
+        p_payment_received: paymentReceived,
+        p_user_id: staff.user!.id,
+      });
+      if (error) return NextResponse.json({ error: error.message || "delivery_confirmation_failed" }, { status: 409 });
+      if (!data?.ok) {
+        const codeError = String(data?.error || "delivery_confirmation_failed");
+        const status = codeError === "confirmation_locked" ? 429 : codeError === "invalid_confirmation_code" ? 400 : 409;
+        return NextResponse.json({ error: codeError, confirmation: data }, { status });
+      }
+      return NextResponse.json({ confirmation: data });
     }
 
     return NextResponse.json({ error: "invalid_action" }, { status: 400 });

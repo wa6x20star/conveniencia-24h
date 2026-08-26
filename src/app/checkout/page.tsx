@@ -9,6 +9,7 @@ import { DEFAULT_CITY, DEFAULT_STATE, STORE_WHATSAPP } from "@/lib/config";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const LAST_ORDER_KEY = "conveniencia24h.lastOrder.v2";
+const DELIVERY_CODES_KEY = "conveniencia24h.deliveryCodes.v1";
 type Payment = "pix" | "cash" | "card";
 const paymentLabels: Record<Payment,string> = { pix:"PIX", cash:"Dinheiro", card:"Cartão na entrega" };
 const paymentApi: Record<Payment,string> = { pix:"pix", cash:"cash", card:"card_on_delivery" };
@@ -39,8 +40,15 @@ export default function CheckoutPage(){
     setSubmitting(true); const popup=window.open('about:blank','_blank');
     try{const response=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_order_key:clientOrderKey,website,customer:{name:form.name,phone:form.whatsapp},address:{postal_code:form.cep,street:form.street,number:form.number,complement:form.complement,neighborhood:form.neighborhood,city:form.city,state:form.state,reference:form.reference},payment_method:paymentApi[payment],change_for:payment==='cash'?form.changeFor:null,notes:form.notes,items:items.map(item=>({product_id:item.id,quantity:item.qty}))})});
       const d=await response.json().catch(()=>({}));if(!response.ok){if(response.status===422)throw new Error('delivery_unavailable');if(response.status===429)throw new Error('too_many_orders');if(d.error==='insufficient_stock'||d.error==='product_unavailable')throw new Error('stock');throw new Error(d.error||'order_rejected');}
-      const order=d.order; const orderNumber=String(order.order_number).padStart(6,'0'); const trackingUrl=`${window.location.origin}/pedido/${order.tracking_token}`; const message=buildMessage(orderNumber,order.items,Number(order.subtotal),Number(order.delivery_fee),Number(order.total),order.delivery_distance_km==null?null:Number(order.delivery_distance_km),trackingUrl); const whatsappUrl=`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`;
-      localStorage.setItem(LAST_ORDER_KEY,JSON.stringify({trackingToken:order.tracking_token,orderNumber})); clear(); if(popup)popup.location.href=whatsappUrl;else window.location.href=whatsappUrl; router.push(`/pedido/${order.tracking_token}`);
+      const order=d.order; const orderNumber=String(order.order_number).padStart(6,'0'); const confirmationCode=String(order.confirmation_code||''); const trackingUrl=`${window.location.origin}/pedido/${order.tracking_token}`; const message=buildMessage(orderNumber,order.items,Number(order.subtotal),Number(order.delivery_fee),Number(order.total),order.delivery_distance_km==null?null:Number(order.delivery_distance_km),trackingUrl); const whatsappUrl=`https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(message)}`;
+      localStorage.setItem(LAST_ORDER_KEY,JSON.stringify({trackingToken:order.tracking_token,orderNumber,confirmationCode}));
+      try {
+        const existing=JSON.parse(localStorage.getItem(DELIVERY_CODES_KEY)||"{}");
+        existing[order.tracking_token]={code:confirmationCode,orderNumber,createdAt:Date.now()};
+        const entries=Object.entries(existing).sort((a:any,b:any)=>Number(b[1]?.createdAt||0)-Number(a[1]?.createdAt||0)).slice(0,10);
+        localStorage.setItem(DELIVERY_CODES_KEY,JSON.stringify(Object.fromEntries(entries)));
+      } catch {}
+      clear(); if(popup)popup.location.href=whatsappUrl;else window.location.href=whatsappUrl; router.push(`/pedido/${order.tracking_token}`);
     }catch(e){if(popup)popup.close();const reason=e instanceof Error?e.message:'';if(reason==='stock')alert('Um dos produtos não possui mais estoque suficiente. Atualize a loja e tente novamente.');else if(reason==='delivery_unavailable')alert('O endereço informado está fora da área de entrega configurada.');else if(reason==='too_many_orders')alert('Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.');else alert('O pedido não pôde ser criado. Tente novamente em instantes.');}finally{setSubmitting(false)}
   }
 

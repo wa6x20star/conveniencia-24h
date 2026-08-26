@@ -205,13 +205,108 @@ export function DriverDashboard() {
 
         {delivery.status === "assigned"
           ? <button disabled={busy} onClick={() => action("start", delivery.id)} className="mt-6 min-h-14 w-full rounded-2xl bg-[#C6A75E] text-sm font-black text-[#1F2A44] disabled:opacity-50">INICIAR ENTREGA</button>
-          : <button disabled={busy} onClick={() => action("delivered", delivery.id)} className="mt-6 min-h-14 w-full rounded-2xl bg-emerald-500 text-sm font-black text-white disabled:opacity-50">CONFIRMAR ENTREGA</button>}
+          : <DeliveryConfirmationPanel delivery={delivery} busy={busy} setBusy={setBusy} reload={() => load(true)}/>}
       </section>}
 
       <HistoryPanel history={data?.history || []} stats={data?.stats?.month}/>
 
       <p className="mt-5 text-center text-xs text-slate-400">Você visualiza somente informações vinculadas às entregas da sua conta.</p>
     </main>
+  </div>;
+}
+
+function DeliveryConfirmationPanel({ delivery, busy, setBusy, reload }: { delivery: any; busy: boolean; setBusy: (value: boolean) => void; reload: () => Promise<void> }) {
+  const [code, setCode] = useState("");
+  const [paymentReceived, setPaymentReceived] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [proof, setProof] = useState<File | null>(null);
+  const [reason, setReason] = useState("code_unavailable");
+  const [note, setNote] = useState("");
+  const confirmation = delivery?.confirmation;
+  const requiresPayment = delivery?.order?.payment_status !== "paid";
+
+  async function confirmCode() {
+    if (code.replace(/\D/g, "").length !== 6) return alert("Digite o código de 6 dígitos informado pelo cliente.");
+    if (requiresPayment && !paymentReceived) return alert("Confirme primeiro que o pagamento foi recebido.");
+    setBusy(true);
+    try {
+      const response = await fetch("/api/driver/deliveries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "confirm_code", deliveryId: delivery.id, code, paymentReceived }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (body.error === "invalid_confirmation_code") throw new Error(`Código incorreto. ${body.confirmation?.attempts_left ?? ""} tentativa(s) restante(s).`);
+        if (body.error === "confirmation_locked") throw new Error("Muitas tentativas incorretas. O código foi bloqueado por 15 minutos.");
+        if (body.error === "payment_confirmation_required") throw new Error("Confirme que o pagamento foi recebido antes de concluir.");
+        if (body.error === "too_many_confirmation_attempts") throw new Error("Muitas tentativas em pouco tempo. Aguarde alguns minutos.");
+        throw new Error(body.error || "Não foi possível confirmar a entrega.");
+      }
+      await reload();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Erro ao confirmar entrega");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitProof() {
+    if (!proof) return alert("Tire ou selecione uma foto que comprove o local da entrega.");
+    if (requiresPayment && !paymentReceived) return alert("Confirme primeiro que o pagamento foi recebido.");
+    setBusy(true);
+    try {
+      const form = new FormData();
+      form.set("deliveryId", delivery.id);
+      form.set("reason", reason);
+      form.set("note", note);
+      form.set("paymentReceived", String(paymentReceived));
+      form.set("proof", proof);
+      const response = await fetch("/api/driver/delivery-proof", { method: "POST", body: form });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (body.error === "payment_confirmation_required") throw new Error("Confirme que o pagamento foi recebido.");
+        if (body.error === "dropoff_requires_prepaid") throw new Error("Não é possível deixar no local um pedido de dinheiro/cartão que ainda não esteja pago.");
+        if (body.error === "invalid_proof_file") throw new Error("Use uma foto JPG, PNG ou WebP de até 8 MB.");
+        throw new Error(body.error || "Não foi possível enviar o comprovante.");
+      }
+      setProof(null);
+      setNote("");
+      setShowFallback(false);
+      await reload();
+      alert("Comprovante enviado. A operação precisa aprovar antes de concluir a entrega.");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Erro ao enviar comprovante");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!confirmation?.enabled) return <div className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900"><strong>Confirmação de entrega ainda não ativada.</strong><p className="mt-1 text-xs">A operação precisa instalar a migration V6.8.1 antes de concluir novas entregas.</p></div>;
+
+  return <div className="mt-6 rounded-[1.6rem] border-2 border-[#E8DCC8] bg-[#FFFDF9] p-4">
+    <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-wider text-[#A88A45]">Confirmação de entrega</p><h3 className="mt-1 text-lg font-black text-[#1F2A44]">Peça o código ao cliente</h3></div><span className="rounded-full bg-[#F4ECDF] px-2.5 py-1 text-[9px] font-black text-[#1F2A44]">6 DÍGITOS</span></div>
+    <p className="mt-2 text-xs leading-5 text-slate-500">O cliente deve informar o código somente depois que estiver com o pedido. Esse é o método principal de confirmação.</p>
+
+    {confirmation.status === "proof_pending" && <div className="mt-3 rounded-2xl bg-amber-50 p-3 text-xs text-amber-900"><strong>Foto aguardando aprovação da operação.</strong><p className="mt-1">Se o cliente conseguir localizar o código, você ainda pode confirmar por ele agora.</p></div>}
+    {confirmation.status === "proof_rejected" && <div className="mt-3 rounded-2xl bg-rose-50 p-3 text-xs text-rose-800"><strong>Comprovante recusado.</strong><p className="mt-1">{confirmation.review_note || "Envie uma nova prova ou confirme pelo código do cliente."}</p></div>}
+    {confirmation.locked_until && new Date(confirmation.locked_until).getTime() > Date.now() && <div className="mt-3 rounded-2xl bg-rose-50 p-3 text-xs font-bold text-rose-800">Código temporariamente bloqueado após tentativas incorretas. Use o comprovante fotográfico se necessário.</div>}
+
+    {requiresPayment && <label className="mt-4 flex min-h-12 items-center gap-3 rounded-2xl bg-emerald-50 px-4 text-sm font-bold text-emerald-900"><input type="checkbox" checked={paymentReceived} onChange={(event) => setPaymentReceived(event.target.checked)} className="size-5"/><span>{delivery?.order?.payment_method === "pix" ? "PIX confirmado/recebido" : "Pagamento recebido do cliente"}</span></label>}
+
+    <div className="mt-4 flex gap-2"><input aria-label="Código de confirmação da entrega" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" className="h-14 min-w-0 flex-1 rounded-2xl border border-[#D8C7AC] px-4 text-center font-mono text-2xl font-black tracking-[.18em] text-[#1F2A44]"/><button type="button" disabled={busy || code.length !== 6} onClick={confirmCode} className="min-h-14 rounded-2xl bg-emerald-500 px-4 text-xs font-black text-white disabled:opacity-40">CONFIRMAR</button></div>
+
+    <button type="button" onClick={() => setShowFallback((value) => !value)} className="mt-4 min-h-11 w-full rounded-2xl border border-[#E8DCC8] text-xs font-black text-[#1F2A44]">{showFallback ? "FECHAR COMPROVANTE" : "NÃO TENHO O CÓDIGO • ENVIAR FOTO"}</button>
+
+    {showFallback && <div className="mt-4 rounded-2xl bg-[#F8F5EF] p-4">
+      <p className="text-xs font-black text-[#1F2A44]">Comprovante fotográfico</p>
+      <p className="mt-1 text-[11px] leading-5 text-slate-500">Use como exceção. Fotografe preferencialmente o pacote no ponto de entrega. <strong>Evite rostos, interior da residência, placas, documentos ou outras informações pessoais.</strong></p>
+      <label className="mt-3 grid gap-1 text-xs font-bold text-[#1F2A44]">Motivo<select value={reason} onChange={(event) => setReason(event.target.value)} className="h-12 rounded-2xl border border-[#E8DCC8] bg-white px-3"><option value="code_unavailable">Código não disponível</option><option value="customer_authorized_dropoff">Cliente autorizou deixar no local</option><option value="received_by_third_party">Recebido por outra pessoa no endereço</option></select></label>
+      <label className="mt-3 grid gap-1 text-xs font-bold text-[#1F2A44]">Foto<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => setProof(event.target.files?.[0] || null)} className="min-h-12 rounded-2xl border border-[#E8DCC8] bg-white p-3 text-xs"/></label>
+      <label className="mt-3 grid gap-1 text-xs font-bold text-[#1F2A44]">Observação opcional<textarea value={note} onChange={(event) => setNote(event.target.value.slice(0, 300))} className="min-h-20 rounded-2xl border border-[#E8DCC8] bg-white p-3" placeholder="Ex.: cliente pediu para deixar com a portaria"/></label>
+      <button type="button" disabled={busy || !proof} onClick={submitProof} className="mt-3 min-h-12 w-full rounded-2xl bg-[#1F2A44] text-xs font-black text-white disabled:opacity-40">ENVIAR PARA APROVAÇÃO</button>
+      <p className="mt-2 text-[10px] leading-4 text-slate-400">A foto não conclui a entrega sozinha. A operação precisa revisar e aprovar.</p>
+    </div>}
   </div>;
 }
 

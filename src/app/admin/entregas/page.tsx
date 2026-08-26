@@ -39,6 +39,20 @@ type ActiveDelivery = {
   order?: any;
 };
 
+
+type ProofPending = {
+  id: string;
+  order_id: string;
+  delivery_id: string;
+  payment_confirmed: boolean;
+  proof_reason?: string | null;
+  proof_note?: string | null;
+  proof_submitted_at?: string | null;
+  proofUrl?: string | null;
+  order?: { order_number?: number; customer_name?: string; payment_method?: string; payment_status?: string } | null;
+  driver?: { id: string; profile?: { full_name?: string } | null } | null;
+};
+
 type Rule = { minKm: number; maxKm: number; customerFee: number; driverPayout: number; active?: boolean };
 
 const defaultRules: Rule[] = [
@@ -91,7 +105,7 @@ function TeamMetric({ label, value, detail }: { label: string; value: number; de
 }
 
 export default function DeliveriesPage() {
-  const [data, setData] = useState<{ drivers: Driver[]; pendingOrders: Order[]; activeDeliveries: ActiveDelivery[]; role?: string }>({ drivers: [], pendingOrders: [], activeDeliveries: [] });
+  const [data, setData] = useState<{ drivers: Driver[]; pendingOrders: Order[]; activeDeliveries: ActiveDelivery[]; proofPending?: ProofPending[]; confirmationEnabled?: boolean; role?: string }>({ drivers: [], pendingOrders: [], activeDeliveries: [], proofPending: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -181,6 +195,28 @@ export default function DeliveriesPage() {
       await load();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function reviewProof(proof: ProofPending, approve: boolean) {
+    const reviewNote = approve
+      ? window.prompt("Observação da aprovação (opcional):", "") ?? ""
+      : window.prompt("Informe o motivo da recusa do comprovante:", "");
+    if (!approve && (!reviewNote || reviewNote.trim().length < 3)) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/admin/deliveries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: approve ? "approve_proof" : "reject_proof", deliveryId: proof.delivery_id, reviewNote }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Não foi possível revisar o comprovante");
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao revisar comprovante");
     } finally {
       setSaving(false);
     }
@@ -332,6 +368,20 @@ export default function DeliveriesPage() {
     </div>
 
     {error && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
+
+    {data.confirmationEnabled === false && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><strong>Confirmação de entrega ainda não ativada.</strong> Execute a migration V6.8.1 antes de criar novos pedidos.</div>}
+
+    {!!data.proofPending?.length && <section className="mt-5 rounded-[2rem] border-2 border-amber-200 bg-amber-50 p-5">
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-amber-700">Ação necessária</p><h2 className="mt-1 text-xl font-black text-[#1F2A44]">Comprovantes de entrega pendentes</h2><p className="mt-1 text-sm text-amber-900/70">A foto é uma exceção ao código e só conclui o pedido depois da sua aprovação.</p></div><span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black text-amber-900">{data.proofPending.length} pendente{data.proofPending.length === 1 ? "" : "s"}</span></div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">{data.proofPending.map((proof) => <article key={proof.id} className="overflow-hidden rounded-3xl border border-amber-200 bg-white">
+        {proof.proofUrl ? <a href={proof.proofUrl} target="_blank" rel="noreferrer" className="block bg-slate-100"><img src={proof.proofUrl} alt="Comprovante fotográfico da entrega" className="h-52 w-full object-cover"/></a> : <div className="grid h-36 place-items-center bg-slate-100 text-sm text-slate-400">Foto indisponível</div>}
+        <div className="p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-black text-[#1F2A44]">Pedido #{String(proof.order?.order_number ?? "").padStart(6, "0")}</p><p className="mt-1 text-xs text-slate-500">{proof.order?.customer_name || "Cliente"} • {proof.driver?.profile?.full_name || "Entregador"}</p></div><span className="rounded-full bg-amber-100 px-2.5 py-1 text-[9px] font-black text-amber-800">REVISAR</span></div>
+          <div className="mt-3 rounded-2xl bg-[#F8F5EF] p-3 text-xs text-slate-600"><p><strong>Motivo:</strong> {proof.proof_reason === "customer_authorized_dropoff" ? "Cliente autorizou deixar no local" : proof.proof_reason === "received_by_third_party" ? "Recebido por outra pessoa" : "Código não disponível"}</p>{proof.proof_note && <p className="mt-1"><strong>Observação:</strong> {proof.proof_note}</p>}<p className="mt-1"><strong>Pagamento:</strong> {proof.order?.payment_status === "paid" ? "Já estava confirmado" : proof.payment_confirmed ? "Entregador declarou confirmado/recebido" : "Não confirmado"}</p></div>
+          <p className="mt-3 text-[10px] leading-4 text-slate-400">Confira se a imagem demonstra o ponto de entrega sem expor dados pessoais desnecessários.</p>
+          <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" disabled={saving} onClick={() => reviewProof(proof, false)} className="min-h-11 rounded-2xl border border-rose-200 text-xs font-black text-rose-700 disabled:opacity-40">RECUSAR</button><button type="button" disabled={saving} onClick={() => reviewProof(proof, true)} className="min-h-11 rounded-2xl bg-emerald-500 text-xs font-black text-white disabled:opacity-40">APROVAR ENTREGA</button></div>
+        </div>
+      </article>)}</div>
+    </section>}
 
     <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
       <TeamMetric label="Disponíveis" value={summary.available}/>

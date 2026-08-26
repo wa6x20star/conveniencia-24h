@@ -9,10 +9,11 @@ import { STORE_WHATSAPP } from "@/lib/config";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const LAST_ORDER_KEY = "conveniencia24h.lastOrder.v2";
+const DELIVERY_CODES_KEY = "conveniencia24h.deliveryCodes.v1";
 const steps = [["received","Pedido recebido"],["picking","Em separação"],["ready","Pedido pronto"],["out_for_delivery","Saiu para entrega"],["delivered","Entregue"]] as const;
 const paymentLabels: Record<string,string> = { pix:"PIX", cash:"Dinheiro", card_on_delivery:"Cartão na entrega" };
 
-type Order = { order_number:number; status:string; payment_method:string; payment_status:string; subtotal:number; delivery_fee:number; total:number; customer_name:string; items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[]; history:{status:string;created_at:string}[]; cancellation_reason?:string; delivery?:{status:string;assigned_at?:string;started_at?:string;delivered_at?:string;driver_name?:string|null}|null };
+type Order = { order_number:number; status:string; payment_method:string; payment_status:string; subtotal:number; delivery_fee:number; total:number; customer_name:string; items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[]; history:{status:string;created_at:string}[]; cancellation_reason?:string; delivery?:{status:string;assigned_at?:string;started_at?:string;delivered_at?:string;driver_name?:string|null}|null; confirmation?:{status:string;method?:string|null;confirmed_at?:string|null}|null };
 
 export default function TrackingPage() {
   const params = useParams<{ token: string }>();
@@ -40,6 +41,17 @@ export default function TrackingPage() {
         }
       } catch {}
     }
+  }, [params.token]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LAST_ORDER_KEY);
+      const parsed = stored ? JSON.parse(stored) : null;
+      const codes = JSON.parse(localStorage.getItem(DELIVERY_CODES_KEY) || "{}");
+      const codeEntry = codes?.[params.token];
+      if (codeEntry?.code) setLocal({ ...(parsed || {}), trackingToken: params.token, confirmationCode: codeEntry.code });
+      else if (parsed) setLocal(parsed);
+    } catch {}
   }, [params.token]);
 
   useEffect(() => { void load(); const timer = setInterval(() => void load(), 8000); return () => clearInterval(timer); }, [load]);
@@ -72,6 +84,17 @@ export default function TrackingPage() {
                 {order.delivery.started_at && <p className="mt-1 text-xs text-[#777066]">Saiu para entrega às {new Date(order.delivery.started_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.</p>}
               </div>
             )}
+
+            {order.status !== "delivered" && order.status !== "cancelled" && <div className="mt-5 rounded-2xl border-2 border-dashed border-[#C6A75E] bg-[#FFF9EC] p-5 text-center">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-[#8E6D25]">Código de confirmação da entrega</p>
+              {local?.trackingToken === params.token && local?.confirmationCode ? <p className="mt-2 font-mono text-4xl font-black tracking-[.18em] text-[#1F2A44]">{local.confirmationCode}</p> : <p className="mt-2 text-sm font-bold text-[#1F2A44]">O código foi exibido no aparelho onde este pedido foi criado.</p>}
+              <p className="mt-2 text-xs leading-5 text-[#777066]">Informe este código ao entregador <strong>somente depois de receber o pedido</strong>. Não envie o código pelo WhatsApp da loja. Ele funciona como confirmação do recebimento.</p>
+            </div>}
+
+            {order.status === "delivered" && order.confirmation?.method && <div className="mt-5 rounded-2xl bg-emerald-50 p-4 text-emerald-900">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.12em]">Entrega confirmada</p>
+              <p className="mt-1 text-sm font-bold">{order.confirmation.method === "code" ? "Recebimento validado com o código do cliente." : "Comprovante fotográfico validado pela operação."}</p>
+            </div>}
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl bg-[#F4ECDF] p-3"><PackageIcon className="size-5 text-[#A88A45]"/><p className="mt-2 text-[9px] font-extrabold uppercase text-[#8E8375]">Cliente</p><strong className="text-sm">{order.customer_name}</strong></div>

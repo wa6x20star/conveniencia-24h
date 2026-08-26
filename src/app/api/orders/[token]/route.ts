@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tok
 
     if (error || !order) return NextResponse.json({ error: "order_not_found" }, { status: 404 });
 
-    const [{ data: items }, { data: history }, { data: delivery }] = await Promise.all([
+    const [{ data: items }, { data: history }, { data: delivery }, { data: confirmation }] = await Promise.all([
       supabase.from("order_items").select("id,product_name,quantity,unit_price,total_price").eq("order_id", order.id).order("created_at"),
       supabase.from("order_status_history").select("status,created_at").eq("order_id", order.id).order("created_at"),
       supabase
@@ -44,6 +44,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tok
         .neq("status", "cancelled")
         .order("assigned_at", { ascending: false })
         .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("delivery_confirmations")
+        .select("status,confirmation_method,confirmed_at")
+        .eq("order_id", order.id)
         .maybeSingle(),
     ]);
 
@@ -69,6 +74,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tok
             delivered_at: delivery.delivered_at,
             driver_name: driverName,
           }
+        : null,
+      confirmation: confirmation
+        ? { status: confirmation.status, method: confirmation.confirmation_method, confirmed_at: confirmation.confirmed_at }
         : null,
     };
 

@@ -87,6 +87,36 @@ export async function GET() {
       }
     }
 
+    let confirmationEnabled = true;
+    let proofPending: any[] = [];
+    const { data: proofRows, error: proofError } = await supabase
+      .from("delivery_confirmations")
+      .select("id,order_id,delivery_id,status,payment_confirmed,proof_path,proof_reason,proof_note,proof_submitted_at")
+      .eq("store_id", store.id)
+      .eq("status", "proof_pending")
+      .order("proof_submitted_at", { ascending: true });
+
+    if (proofError?.code === "42P01") confirmationEnabled = false;
+    else if (proofError) throw proofError;
+    else {
+      proofPending = await Promise.all((proofRows ?? []).map(async (row: any) => {
+        const delivery = (deliveries ?? []).find((item: any) => item.id === row.delivery_id);
+        const order = orderById.get(row.order_id) ?? null;
+        const driver = delivery ? (drivers ?? []).find((item: any) => item.id === delivery.driver_id) : null;
+        let proofUrl: string | null = null;
+        if (row.proof_path) {
+          const { data: signed } = await supabase.storage.from("delivery-proofs").createSignedUrl(row.proof_path, 3600);
+          proofUrl = signed?.signedUrl ?? null;
+        }
+        return {
+          ...row,
+          proofUrl,
+          order,
+          driver: driver ? { id: driver.id, profile: profileById.get(driver.user_id) ?? null } : null,
+        };
+      }));
+    }
+
     return NextResponse.json({
       store,
       drivers: (drivers ?? []).map((driver: any) => ({
@@ -99,6 +129,8 @@ export async function GET() {
       activeDeliveries: (deliveries ?? [])
         .filter((delivery: any) => orderById.has(delivery.order_id))
         .map((delivery: any) => ({ ...delivery, order: orderById.get(delivery.order_id) ?? null })),
+      proofPending,
+      confirmationEnabled,
       role: staff.role,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
@@ -133,6 +165,24 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase.rpc("set_delivery_status_v65", { p_delivery_id: deliveryId, p_status: "cancelled", p_user_id: staff.user!.id });
       if (error) return NextResponse.json({ error: error.message || "unassign_failed" }, { status: 409 });
       return NextResponse.json({ delivery: data }, { headers: { "Cache-Control": "no-store" } });
+    }
+
+    if (action === "approve_proof") {
+      const deliveryId = cleanText(body.deliveryId, 40);
+      const reviewNote = cleanText(body.reviewNote, 300);
+      if (!isUuid(deliveryId)) return NextResponse.json({ error: "invalid_delivery" }, { status: 400 });
+      const { data, error } = await supabase.rpc("approve_delivery_proof_v681", { p_delivery_id: deliveryId, p_review_note: reviewNote || null, p_user_id: staff.user!.id });
+      if (error) return NextResponse.json({ error: error.message || "proof_approval_failed" }, { status: 409 });
+      return NextResponse.json({ confirmation: data }, { headers: { "Cache-Control": "no-store" } });
+    }
+
+    if (action === "reject_proof") {
+      const deliveryId = cleanText(body.deliveryId, 40);
+      const reviewNote = cleanText(body.reviewNote, 300);
+      if (!isUuid(deliveryId) || reviewNote.length < 3) return NextResponse.json({ error: "review_note_required" }, { status: 400 });
+      const { data, error } = await supabase.rpc("reject_delivery_proof_v681", { p_delivery_id: deliveryId, p_review_note: reviewNote, p_user_id: staff.user!.id });
+      if (error) return NextResponse.json({ error: error.message || "proof_rejection_failed" }, { status: 409 });
+      return NextResponse.json({ confirmation: data }, { headers: { "Cache-Control": "no-store" } });
     }
 
     return NextResponse.json({ error: "invalid_action" }, { status: 400 });
