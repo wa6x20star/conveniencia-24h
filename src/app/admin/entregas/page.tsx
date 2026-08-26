@@ -324,6 +324,7 @@ export default function DeliveriesPage() {
       </div>
       <div className="flex flex-wrap gap-2">
         {data.role === "admin" && <button type="button" onClick={() => setShowPortal(true)} className="rounded-2xl border border-[#C6A75E] bg-[#FFF8E8] px-4 py-3 text-xs font-black text-[#1F2A44]">🛵 PORTAL DO ENTREGADOR</button>}
+        {data.role === "admin" && <a href="/admin/repasses" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-black text-emerald-800">R$ REPASSES</a>}
         {data.role === "admin" && <button type="button" onClick={openSettings} className="rounded-2xl border border-[#D8C7AC] bg-white px-4 py-3 text-xs font-black text-[#1F2A44]">CONFIGURAR FRETE</button>}
         {data.role === "admin" && <button type="button" onClick={() => setShowDriver(true)} className="rounded-2xl bg-[#1F2A44] px-4 py-3 text-xs font-black text-white">+ ENTREGADOR</button>}
         <button type="button" onClick={load} className="rounded-2xl bg-[#C6A75E] px-4 py-3 text-xs font-black text-[#1F2A44]">ATUALIZAR</button>
@@ -375,7 +376,7 @@ export default function DeliveriesPage() {
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-[#F8F5EF] p-3 text-center">
                 <div><p className="text-[9px] font-bold uppercase text-slate-400">Entregas</p><strong className="text-sm text-[#1F2A44]">{driver.monthStats?.deliveries || 0}</strong></div>
-                <div><p className="text-[9px] font-bold uppercase text-slate-400">Acumulado</p><strong className="text-sm text-[#1F2A44]">{brl.format(Number(driver.monthStats?.payout || 0))}</strong></div>
+                <div><p className="text-[9px] font-bold uppercase text-slate-400">Gerado/mês</p><strong className="text-sm text-[#1F2A44]">{brl.format(Number(driver.monthStats?.payout || 0))}</strong></div>
                 <div><p className="text-[9px] font-bold uppercase text-slate-400">Distância</p><strong className="text-sm text-[#1F2A44]">{Number(driver.monthStats?.distanceKm || 0).toFixed(1)} km</strong></div>
               </div>
               {data.role === "admin" && <div className="mt-3 flex flex-wrap gap-2">

@@ -7,9 +7,10 @@ const links = [
   ["/admin/produtos", "□", "Produtos"],
   ["/admin/estoque", "▤", "Estoque"],
   ["/admin/entregas", "➜", "Entregas"],
+  ["/admin/repasses", "R$", "Repasses"],
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ role }: { role?: string | null }) {
   return (
     <aside className="hidden w-64 shrink-0 border-r border-white/10 bg-[#1F2A44] p-4 text-white lg:flex lg:flex-col">
       <div className="mb-7 border-b border-white/10 px-1 pb-5 pt-1">
@@ -18,7 +19,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="space-y-1">
-        {links.map(([href, icon, label]) => (
+        {links.filter(([href]) => href !== "/admin/repasses" || role === "admin").map(([href, icon, label]) => (
           <Link key={href} href={href} className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold text-[#E8DCC8] transition hover:bg-white/10 hover:text-white">
             <span className="grid size-7 place-items-center rounded-lg bg-white/10 text-[#C6A75E]">{icon}</span>
             {label}

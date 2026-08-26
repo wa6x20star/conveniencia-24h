@@ -7,15 +7,19 @@ import { createClient } from "@/lib/supabase/client";
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const payment: Record<string, string> = { pix: "PIX", cash: "Dinheiro", card_on_delivery: "Cartão na entrega" };
 const paymentStatus: Record<string, string> = { paid: "PAGO", on_delivery: "RECEBER NA ENTREGA", pending: "PENDENTE", failed: "FALHOU", cancelled: "CANCELADO" };
+const payoutMethod: Record<string, string> = { pix: "PIX", cash: "Dinheiro", transfer: "Transferência" };
 
 type DriverStats = { deliveries: number; payout: number; distanceKm: number; averagePayout: number };
-type HistoryItem = { id: string; orderNumber: number | null; neighborhood: string | null; city: string | null; distanceKm: number; payout: number; deliveredAt: string };
+type HistoryItem = { id: string; orderNumber: number | null; neighborhood: string | null; city: string | null; distanceKm: number; payout: number; deliveredAt: string; payoutStatus?: "paid" | "pending" | "untracked" };
+type FinancialPayout = { id: string; payoutNumber: string; amount: number; paymentMethod: string; paidAt: string; deliveries: number; proofUrl?: string | null };
+type DriverFinancial = { enabled: boolean; controlStartedAt: string | null; pendingAmount: number; pendingDeliveries: number; receivedThisMonth: number; recentPayouts: FinancialPayout[] };
 
 type DriverData = {
   driver?: { id: string; status: "available" | "delivering" | "offline"; profile?: { full_name?: string; phone?: string } | null };
   delivery?: any;
   stats?: { today: DriverStats; week: DriverStats; month: DriverStats };
   history?: HistoryItem[];
+  financial?: DriverFinancial;
   generatedAt?: string;
 };
 
@@ -151,7 +155,9 @@ export function DriverDashboard() {
         <SummaryCard title="Esta semana" stats={data?.stats?.week}/>
         <SummaryCard title="Este mês" stats={data?.stats?.month}/>
       </section>
-      <p className="mt-2 text-[11px] text-slate-400">Valores acima representam entregas concluídas registradas para sua conta.</p>
+      <p className="mt-2 text-[11px] text-slate-400">Produção registrada nas entregas concluídas. O que já foi pago aparece no Financeiro abaixo.</p>
+
+      <FinancialPanel financial={data?.financial}/>
 
       {!delivery ? <section className="mt-6 rounded-[2rem] bg-white p-6 text-center text-[#1F2A44]">
         <div className="text-5xl">🛵</div>
@@ -209,6 +215,29 @@ export function DriverDashboard() {
   </div>;
 }
 
+function FinancialPanel({ financial }: { financial?: DriverFinancial }) {
+  const [open, setOpen] = useState(false);
+  if (!financial?.enabled) return <section className="mt-5 rounded-[2rem] border border-white/10 bg-white/5 p-5"><p className="text-xs font-black uppercase tracking-wider text-[#C6A75E]">Financeiro</p><p className="mt-2 text-sm text-slate-300">O controle de repasses será exibido aqui quando a V6.8 estiver ativada.</p></section>;
+
+  return <section className="mt-5 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5">
+    <div className="p-5">
+      <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-[#C6A75E]">Financeiro</p><h2 className="mt-1 text-lg font-black">Seus repasses</h2></div><span className={`rounded-full px-3 py-1 text-[10px] font-black ${financial.pendingDeliveries ? "bg-amber-300 text-[#1F2A44]" : "bg-emerald-100 text-emerald-800"}`}>{financial.pendingDeliveries ? "PENDENTE" : "EM DIA"}</span></div>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="rounded-2xl bg-white/5 p-4"><p className="text-[10px] font-black uppercase text-slate-400">A receber</p><p className="mt-1 text-xl font-black text-amber-200">{brl.format(Number(financial.pendingAmount || 0))}</p><p className="mt-1 text-xs text-slate-400">{financial.pendingDeliveries || 0} entregas</p></div>
+        <div className="rounded-2xl bg-white/5 p-4"><p className="text-[10px] font-black uppercase text-slate-400">Recebido no mês</p><p className="mt-1 text-xl font-black text-emerald-200">{brl.format(Number(financial.receivedThisMonth || 0))}</p><p className="mt-1 text-xs text-slate-400">Repasses confirmados</p></div>
+      </div>
+      {financial.controlStartedAt && <p className="mt-3 text-[10px] text-slate-500">Controle financeiro ativo desde {new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Recife", day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(financial.controlStartedAt))}.</p>}
+    </div>
+    <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="flex min-h-14 w-full items-center justify-between border-t border-white/10 px-5 text-left text-xs font-black"><span>ÚLTIMOS REPASSES</span><span className="text-lg">{open ? "−" : "+"}</span></button>
+    {open && <div className="border-t border-white/10 p-4">
+      <div className="space-y-2">{financial.recentPayouts?.length ? financial.recentPayouts.map((payout) => <div key={payout.id} className="rounded-2xl border border-white/10 p-3">
+        <div className="flex items-center justify-between gap-3"><div><p className="font-black">{payout.payoutNumber}</p><p className="text-xs text-slate-400">{formatDate(payout.paidAt)} • {payoutMethod[payout.paymentMethod] || payout.paymentMethod} • {payout.deliveries} entregas</p></div><strong className="text-emerald-200">{brl.format(payout.amount)}</strong></div>
+        {payout.proofUrl && <a href={payout.proofUrl} target="_blank" rel="noreferrer" className="mt-3 grid min-h-10 place-items-center rounded-xl border border-white/10 text-[10px] font-black text-[#E8DCC8]">VER COMPROVANTE</a>}
+      </div>) : <p className="rounded-2xl border border-white/10 p-4 text-center text-sm text-slate-400">Nenhum repasse registrado ainda.</p>}</div>
+    </div>}
+  </section>;
+}
+
 function HistoryPanel({ history, stats }: { history: HistoryItem[]; stats?: DriverStats }) {
   const [open, setOpen] = useState(false);
   const average = useMemo(() => Number(stats?.averagePayout || 0), [stats?.averagePayout]);
@@ -227,7 +256,7 @@ function HistoryPanel({ history, stats }: { history: HistoryItem[]; stats?: Driv
       <div className="mt-4 space-y-2">
         {history.length ? history.map((item) => <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 p-3">
           <div className="min-w-0"><p className="font-black">{item.orderNumber != null ? `#${String(item.orderNumber).padStart(6, "0")}` : "Pedido"}</p><p className="truncate text-xs text-slate-400">{formatDate(item.deliveredAt)} • {[item.neighborhood, item.city].filter(Boolean).join(" • ") || "Entrega concluída"}</p></div>
-          <div className="shrink-0 text-right"><p className="font-black text-[#E8DCC8]">{brl.format(item.payout)}</p><p className="text-[10px] text-slate-400">{item.distanceKm.toFixed(1)} km</p></div>
+          <div className="shrink-0 text-right"><p className="font-black text-[#E8DCC8]">{brl.format(item.payout)}</p><p className="text-[10px] text-slate-400">{item.distanceKm.toFixed(1)} km</p><p className={`mt-1 text-[9px] font-black ${item.payoutStatus === "paid" ? "text-emerald-300" : item.payoutStatus === "pending" ? "text-amber-300" : "text-slate-500"}`}>{item.payoutStatus === "paid" ? "PAGO" : item.payoutStatus === "pending" ? "A RECEBER" : "FORA DO CONTROLE"}</p></div>
         </div>) : <p className="rounded-2xl border border-white/10 p-4 text-center text-sm text-slate-400">Seu histórico aparecerá aqui após a primeira entrega concluída.</p>}
       </div>
     </div>}

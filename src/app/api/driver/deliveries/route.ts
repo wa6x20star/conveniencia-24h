@@ -55,6 +55,10 @@ function summarizeDeliveries(rows: any[], minKey: string) {
   };
 }
 
+function payoutCode(value: number | string | null | undefined) {
+  return `REP-${String(Number(value || 0)).padStart(6, "0")}`;
+}
+
 export async function GET() {
   if (!hasServerSupabaseEnv()) return NextResponse.json({ error: "database_not_configured" }, { status: 503 });
   const staff = await requireDriver();
@@ -121,8 +125,80 @@ export async function GET() {
       month: summarizeDeliveries(completed ?? [], monthKey),
     };
 
+    let financial: any = {
+      enabled: false,
+      controlStartedAt: null,
+      pendingAmount: 0,
+      pendingDeliveries: 0,
+      receivedThisMonth: 0,
+      recentPayouts: [],
+    };
+    let paidDeliveryIds = new Set<string>();
+    let controlStartedAt: string | null = null;
+
+    const { data: payoutSettings, error: payoutSettingsError } = await supabase
+      .from("driver_payout_settings")
+      .select("control_started_at")
+      .eq("store_id", driver.store_id)
+      .maybeSingle();
+
+    // 42P01 = migration V6.8 ainda não instalada. O painel continua funcionando sem o financeiro.
+    if (payoutSettingsError && payoutSettingsError.code !== "42P01") throw payoutSettingsError;
+
+    if (payoutSettings?.control_started_at) {
+      controlStartedAt = payoutSettings.control_started_at;
+      const [{ data: eligible, error: eligibleError }, { data: batches, error: batchesError }] = await Promise.all([
+        supabase.from("deliveries").select("id,driver_payout,delivered_at").eq("driver_id", driver.id).eq("status", "delivered").gte("delivered_at", controlStartedAt).gt("driver_payout", 0).order("delivered_at", { ascending: false }).limit(5000),
+        supabase.from("driver_payout_batches").select("id,batch_number,total_amount,payment_method,paid_at,proof_path").eq("driver_id", driver.id).eq("status", "paid").order("paid_at", { ascending: false }).limit(1000),
+      ]);
+      if (eligibleError) throw eligibleError;
+      if (batchesError) throw batchesError;
+
+      const batchIds = (batches ?? []).map((row: any) => row.id);
+      const [{ data: payoutItems, error: payoutItemsError }, { data: recentBatchItems, error: recentBatchItemsError }] = await Promise.all([
+        supabase.from("driver_payout_items").select("delivery_id,batch_id").eq("driver_id", driver.id).limit(10000),
+        batchIds.length ? supabase.from("driver_payout_items").select("batch_id,delivery_id,amount").in("batch_id", batchIds.slice(0, 8)) : Promise.resolve({ data: [], error: null } as any),
+      ]);
+      if (payoutItemsError) throw payoutItemsError;
+      if (recentBatchItemsError) throw recentBatchItemsError;
+
+      paidDeliveryIds = new Set((payoutItems ?? []).map((row: any) => row.delivery_id));
+      const pendingRows = (eligible ?? []).filter((row: any) => !paidDeliveryIds.has(row.id));
+      const monthStartIso = keyToUtcDate(monthKey).toISOString();
+      const receivedThisMonth = (batches ?? []).filter((row: any) => row.paid_at >= monthStartIso).reduce((sum: number, row: any) => sum + Number(row.total_amount || 0), 0);
+      const itemCountByBatch = new Map<string, number>();
+      for (const row of recentBatchItems ?? []) itemCountByBatch.set(row.batch_id, (itemCountByBatch.get(row.batch_id) ?? 0) + 1);
+
+      const recentPayouts = await Promise.all((batches ?? []).slice(0, 8).map(async (batch: any) => {
+        let proofUrl: string | null = null;
+        if (batch.proof_path) {
+          const { data: signed } = await supabase.storage.from("driver-payout-proofs").createSignedUrl(batch.proof_path, 3600);
+          proofUrl = signed?.signedUrl ?? null;
+        }
+        return {
+          id: batch.id,
+          payoutNumber: payoutCode(batch.batch_number),
+          amount: Number(batch.total_amount || 0),
+          paymentMethod: batch.payment_method,
+          paidAt: batch.paid_at,
+          deliveries: itemCountByBatch.get(batch.id) ?? 0,
+          proofUrl,
+        };
+      }));
+
+      financial = {
+        enabled: true,
+        controlStartedAt,
+        pendingAmount: pendingRows.reduce((sum: number, row: any) => sum + Number(row.driver_payout || 0), 0),
+        pendingDeliveries: pendingRows.length,
+        receivedThisMonth,
+        recentPayouts,
+      };
+    }
+
     const history = recentCompleted.map((row: any) => {
       const historyOrder = historyOrderById.get(row.order_id) as any;
+      const beforeControl = !controlStartedAt || new Date(row.delivered_at).getTime() < new Date(controlStartedAt).getTime();
       return {
         id: row.id,
         orderNumber: historyOrder?.order_number ?? null,
@@ -131,6 +207,7 @@ export async function GET() {
         distanceKm: Number(row.distance_km || 0),
         payout: Number(row.driver_payout || 0),
         deliveredAt: row.delivered_at,
+        payoutStatus: beforeControl ? "untracked" : paidDeliveryIds.has(row.id) ? "paid" : "pending",
       };
     });
 
@@ -139,6 +216,7 @@ export async function GET() {
       delivery: delivery ? { ...delivery, order, items } : null,
       stats,
       history,
+      financial,
       generatedAt: new Date().toISOString(),
     }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
   } catch (error) {

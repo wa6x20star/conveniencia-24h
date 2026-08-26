@@ -43,3 +43,7 @@ A V6.7 profissionaliza `/entregador` com ganhos registrados por período, histó
 ## V6.7.1 — Portal e Gestão de Entregadores
 
 A V6.7.1 adiciona um acesso rápido ao Portal do Entregador no painel de Entregas, QR Code e cópia do link, visão resumida da equipe, edição de nome/telefone, desativação e reativação sem perder histórico, destaque de entrega ativa e melhorias no login do entregador. Leia `V6_7_1_PORTAL_GESTAO_ENTREGADORES_SETUP.md`. Não há nova migration SQL obrigatória nesta versão.
+
+## V6.8 — Controle de Repasses
+
+A V6.8 adiciona a aba administrativa **Repasses**, saldo a receber por entregador, pagamento em lote por entregas, numeração `REP-000001`, comprovante privado opcional e visão financeira no portal do entregador. Execute `supabase/V6_8_DRIVER_PAYOUTS.sql` antes do deploy e siga `V6_8_REPASSES_SETUP.md`.

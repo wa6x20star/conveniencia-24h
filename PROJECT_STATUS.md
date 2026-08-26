@@ -73,3 +73,15 @@ Antes de publicar, execute `supabase/V6_4_SECURITY_HARDENING.sql` e siga `V6_4_S
 - Pagamento destacado para evitar cobrança duplicada.
 - Atalhos de contato, Google Maps e Waze.
 - Resumo mensal de desempenho dos entregadores no painel administrativo.
+
+## V6.8 — Controle de Repasses e Financeiro dos Entregadores
+
+- Nova aba administrativa `Repasses`.
+- Saldo pendente por entregador derivado de entregas concluídas.
+- Data de início do controle evita incluir testes antigos.
+- Repasse em lote com numeração `REP-000001`.
+- PIX, dinheiro ou transferência.
+- Comprovante opcional em bucket privado.
+- Proteção transacional contra pagamento duplicado da mesma entrega.
+- Histórico de repasses com detalhamento das entregas.
+- Painel do entregador com `A receber`, `Recebido no mês` e últimos repasses.
