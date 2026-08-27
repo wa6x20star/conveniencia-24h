@@ -85,3 +85,10 @@ Antes de publicar, execute `supabase/V6_4_SECURITY_HARDENING.sql` e siga `V6_4_S
 - Proteção transacional contra pagamento duplicado da mesma entrega.
 - Histórico de repasses com detalhamento das entregas.
 - Painel do entregador com `A receber`, `Recebido no mês` e últimos repasses.
+
+## V6.8.2 — Validação Inteligente de Endereço
+- CEP consultado em BrasilAPI com fallback ViaCEP.
+- Autofill de endereço no checkout.
+- Geocodificação em cascata: número → rua → CEP.
+- Aviso quando a posição utilizada é aproximada.
+- Sem migração SQL.

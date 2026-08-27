@@ -125,6 +125,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "delivery_unavailable", quote: shipping }, { status: 422, headers: { "Cache-Control": "no-store" } });
     }
 
+    const resolvedShippingAddress = shipping.resolvedAddress ?? {
+      postal_code: postalCode,
+      street,
+      number,
+      neighborhood,
+      city,
+      state,
+    };
+
     const payload = {
       client_order_key: body.client_order_key,
       store_slug: STORE_SLUG,
@@ -134,13 +143,13 @@ export async function POST(request: NextRequest) {
       driver_payout: shipping.driverPayout,
       customer: { name, phone },
       address: {
-        postal_code: postalCode,
-        street,
-        number,
+        postal_code: resolvedShippingAddress.postal_code,
+        street: resolvedShippingAddress.street,
+        number: resolvedShippingAddress.number,
         complement,
-        neighborhood,
-        city,
-        state,
+        neighborhood: resolvedShippingAddress.neighborhood,
+        city: resolvedShippingAddress.city,
+        state: resolvedShippingAddress.state,
         reference,
       },
       payment_method: paymentMethod,

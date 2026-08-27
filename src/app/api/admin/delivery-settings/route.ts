@@ -3,7 +3,7 @@ import { getCurrentStaff } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { STORE_SLUG, hasServerSupabaseEnv, DEFAULT_CITY, DEFAULT_STATE } from "@/lib/config";
 import { cleanText, digitsOnly, readJsonBody, RequestBodyTooLargeError, sameOriginOrNoOrigin } from "@/lib/security-server";
-import { geocodeBrazilianAddress } from "@/lib/shipping-server";
+import { geocodeBrazilianAddress, resolveBrazilianShippingAddress } from "@/lib/shipping-server";
 
 export const dynamic = "force-dynamic";
 
@@ -73,19 +73,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "rules_invalid" }, { status: 400 });
     }
 
-    const coordinates = await geocodeBrazilianAddress({ postal_code: postalCode, street, number, neighborhood, city, state });
+    const resolvedOrigin = await resolveBrazilianShippingAddress({ postal_code: postalCode, street, number, neighborhood, city, state });
+    const coordinates = await geocodeBrazilianAddress(resolvedOrigin.address, resolvedOrigin.postalLookup.coordinates);
     if (!coordinates) return NextResponse.json({ error: "origin_not_found" }, { status: 422 });
 
+    const canonicalOrigin = resolvedOrigin.address;
     const { supabase, store } = await getStore();
     const { data: saved, error: saveError } = await supabase.rpc("save_delivery_settings_v65", {
       p_store_id: store.id,
       p_payload: {
-        origin_postal_code: postalCode,
-        origin_street: street,
-        origin_number: number,
-        origin_neighborhood: neighborhood,
-        origin_city: city,
-        origin_state: state,
+        origin_postal_code: canonicalOrigin.postal_code,
+        origin_street: canonicalOrigin.street,
+        origin_number: canonicalOrigin.number,
+        origin_neighborhood: canonicalOrigin.neighborhood,
+        origin_city: canonicalOrigin.city,
+        origin_state: canonicalOrigin.state,
         origin_latitude: coordinates.lat,
         origin_longitude: coordinates.lon,
         free_delivery_enabled: body.freeDeliveryEnabled !== false,

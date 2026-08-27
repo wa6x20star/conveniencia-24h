@@ -12,6 +12,16 @@ export type ShippingAddress = {
   state: string;
 };
 
+export type AddressPrecision = "exact" | "street" | "postal_code";
+export type AddressLookupSource = "brasilapi" | "viacep" | "geocoder";
+
+export type PostalCodeLookup = {
+  found: boolean;
+  source: "brasilapi" | "viacep" | null;
+  address: Omit<ShippingAddress, "number"> | null;
+  coordinates: { lat: number; lon: number } | null;
+};
+
 export type ShippingQuote = {
   available: boolean;
   subtotal: number;
@@ -23,9 +33,14 @@ export type ShippingQuote = {
   amountToFreeDelivery: number;
   source: "free" | "distance" | "zone" | "fixed";
   message?: string;
+  addressPrecision?: AddressPrecision | null;
+  addressApproximate?: boolean;
+  addressValidatedBy?: AddressLookupSource | null;
+  resolvedAddress?: ShippingAddress;
 };
 
 type Coordinates = { lat: number; lon: number };
+type GeocodeResult = Coordinates & { precision: AddressPrecision; validatedBy: AddressLookupSource };
 
 function roundMoney(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
@@ -33,6 +48,17 @@ function roundMoney(value: number) {
 
 function roundDistance(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function normalizeAddress(address: Partial<ShippingAddress>): ShippingAddress {
+  return {
+    postal_code: digitsOnly(address.postal_code, 8),
+    street: cleanText(address.street, 120),
+    number: cleanText(address.number, 20),
+    neighborhood: cleanText(address.neighborhood, 80),
+    city: cleanText(address.city, 80),
+    state: cleanText(address.state, 2).toUpperCase(),
+  };
 }
 
 async function fetchJson(url: string, init: RequestInit, timeoutMs = 8000) {
@@ -47,30 +73,167 @@ async function fetchJson(url: string, init: RequestInit, timeoutMs = 8000) {
   }
 }
 
-export async function geocodeBrazilianAddress(address: Partial<ShippingAddress>): Promise<Coordinates | null> {
-  const parts = [address.street, address.number, address.neighborhood, address.city, address.state, digitsOnly(address.postal_code, 8), "Brasil"]
-    .map((item) => cleanText(item, 120))
-    .filter(Boolean);
-  if (parts.length < 3) return null;
+function finiteCoordinates(latValue: unknown, lonValue: unknown): Coordinates | null {
+  const lat = Number(latValue);
+  const lon = Number(lonValue);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+  return { lat, lon };
+}
 
+/**
+ * Consulta o CEP em provedores brasileiros antes de geocodificar.
+ * Isso evita rejeitar um CEP válido apenas porque o mapa não conhece o número da residência.
+ */
+export async function lookupBrazilianPostalCode(postalCodeRaw: string): Promise<PostalCodeLookup> {
+  const postalCode = digitsOnly(postalCodeRaw, 8);
+  if (postalCode.length !== 8) return { found: false, source: null, address: null, coordinates: null };
+
+  // BrasilAPI v2 pode devolver também coordenadas aproximadas do CEP.
+  try {
+    const data = await fetchJson(`https://brasilapi.com.br/api/cep/v2/${postalCode}`, {
+      headers: { Accept: "application/json", "User-Agent": "Conveniencia24h/6.8.2" },
+    }, 5500);
+    const state = cleanText(data?.state, 2).toUpperCase();
+    const city = cleanText(data?.city, 80);
+    const street = cleanText(data?.street, 120);
+    const neighborhood = cleanText(data?.neighborhood, 80);
+    if (city.length >= 2 && /^[A-Z]{2}$/.test(state)) {
+      const coordinates = finiteCoordinates(data?.location?.coordinates?.latitude, data?.location?.coordinates?.longitude);
+      return {
+        found: true,
+        source: "brasilapi",
+        address: { postal_code: postalCode, street, neighborhood, city, state },
+        coordinates,
+      };
+    }
+  } catch (error) {
+    console.warn("postal_lookup_brasilapi", error instanceof Error ? error.message : error);
+  }
+
+  // ViaCEP é usado como segunda fonte para logradouro/bairro/cidade/UF.
+  try {
+    const data = await fetchJson(`https://viacep.com.br/ws/${postalCode}/json/`, {
+      headers: { Accept: "application/json", "User-Agent": "Conveniencia24h/6.8.2" },
+    }, 5500);
+    if (!data?.erro) {
+      const state = cleanText(data?.uf, 2).toUpperCase();
+      const city = cleanText(data?.localidade, 80);
+      const street = cleanText(data?.logradouro, 120);
+      const neighborhood = cleanText(data?.bairro, 80);
+      if (city.length >= 2 && /^[A-Z]{2}$/.test(state)) {
+        return {
+          found: true,
+          source: "viacep",
+          address: { postal_code: postalCode, street, neighborhood, city, state },
+          coordinates: null,
+        };
+      }
+    }
+  } catch (error) {
+    console.warn("postal_lookup_viacep", error instanceof Error ? error.message : error);
+  }
+
+  return { found: false, source: null, address: null, coordinates: null };
+}
+
+export async function resolveBrazilianShippingAddress(address: Partial<ShippingAddress>) {
+  const original = normalizeAddress(address);
+  const postalLookup = await lookupBrazilianPostalCode(original.postal_code);
+  if (!postalLookup.found || !postalLookup.address) {
+    return { address: original, postalLookup };
+  }
+
+  const canonical = postalLookup.address;
+  return {
+    address: {
+      postal_code: canonical.postal_code || original.postal_code,
+      // CEPs gerais podem não possuir logradouro/bairro. Nesses casos mantemos o digitado.
+      street: canonical.street || original.street,
+      number: original.number,
+      neighborhood: canonical.neighborhood || original.neighborhood,
+      city: canonical.city || original.city,
+      state: canonical.state || original.state,
+    },
+    postalLookup,
+  };
+}
+
+async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function nominatimSearch(parts: string[]): Promise<Coordinates | null> {
+  const cleaned = parts.map((item) => cleanText(item, 120)).filter(Boolean);
+  if (cleaned.length < 2) return null;
   const base = (process.env.GEOCODING_API_BASE_URL || "https://nominatim.openstreetmap.org").replace(/\/$/, "");
-  const params = new URLSearchParams({ format: "jsonv2", limit: "1", countrycodes: "br", q: parts.join(", ") });
+  const params = new URLSearchParams({
+    format: "jsonv2",
+    limit: "1",
+    countrycodes: "br",
+    addressdetails: "1",
+    q: cleaned.join(", "),
+  });
   try {
     const data = await fetchJson(`${base}/search?${params.toString()}`, {
       headers: {
-        "Accept": "application/json",
-        "User-Agent": "Conveniencia24h/6.5 delivery-quote",
+        Accept: "application/json",
+        "User-Agent": "Conveniencia24h/6.8.2 delivery-quote",
         "Accept-Language": "pt-BR,pt;q=0.9",
       },
     });
     const first = Array.isArray(data) ? data[0] : null;
-    const lat = Number(first?.lat);
-    const lon = Number(first?.lon);
-    return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+    return finiteCoordinates(first?.lat, first?.lon);
   } catch (error) {
     console.warn("geocode_unavailable", error instanceof Error ? error.message : error);
     return null;
   }
+}
+
+/**
+ * Geocodificação em cascata:
+ * 1) rua + número;
+ * 2) rua sem número;
+ * 3) coordenada aproximada do CEP / busca pelo CEP.
+ *
+ * O retorno informa a precisão para o checkout avisar quando a localização for aproximada.
+ */
+export async function geocodeBrazilianAddress(
+  address: Partial<ShippingAddress>,
+  postalCoordinates?: Coordinates | null,
+): Promise<GeocodeResult | null> {
+  const normalized = normalizeAddress(address);
+  const exact = await nominatimSearch([
+    normalized.street,
+    normalized.number,
+    normalized.neighborhood,
+    normalized.city,
+    normalized.state,
+    normalized.postal_code,
+    "Brasil",
+  ]);
+  if (exact) return { ...exact, precision: "exact", validatedBy: "geocoder" };
+
+  // No endpoint público do Nominatim evitamos disparar várias requisições no mesmo segundo.
+  const usingPublicNominatim = !(process.env.GEOCODING_API_BASE_URL || "").trim();
+  if (usingPublicNominatim) await sleep(1050);
+
+  const street = await nominatimSearch([
+    normalized.street,
+    normalized.neighborhood,
+    normalized.city,
+    normalized.state,
+    normalized.postal_code,
+    "Brasil",
+  ]);
+  if (street) return { ...street, precision: "street", validatedBy: "geocoder" };
+
+  if (postalCoordinates) {
+    return { ...postalCoordinates, precision: "postal_code", validatedBy: "brasilapi" };
+  }
+
+  if (usingPublicNominatim) await sleep(1050);
+  const postal = await nominatimSearch([normalized.postal_code, normalized.city, normalized.state, "Brasil"]);
+  return postal ? { ...postal, precision: "postal_code", validatedBy: "geocoder" } : null;
 }
 
 function haversineKm(origin: Coordinates, destination: Coordinates) {
@@ -88,7 +251,7 @@ async function routeDistanceKm(origin: Coordinates, destination: Coordinates): P
   const base = (process.env.ROUTING_API_BASE_URL || "https://router.project-osrm.org").replace(/\/$/, "");
   const url = `${base}/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?overview=false&alternatives=false&steps=false`;
   try {
-    const data = await fetchJson(url, { headers: { "Accept": "application/json", "User-Agent": "Conveniencia24h/6.5" } });
+    const data = await fetchJson(url, { headers: { Accept: "application/json", "User-Agent": "Conveniencia24h/6.8.2" } });
     const meters = Number(data?.routes?.[0]?.distance);
     if (Number.isFinite(meters) && meters >= 0) return meters / 1000;
   } catch (error) {
@@ -132,6 +295,10 @@ export async function calculateShippingQuote(
   const freeDeliveryFrom = Number(settings?.free_delivery_from ?? 50);
   const amountToFreeDelivery = roundMoney(Math.max(0, freeDeliveryFrom - subtotal));
 
+  // O CEP é consultado antes da geocodificação. Cidade/UF/logradouro oficiais são usados quando disponíveis.
+  const resolved = await resolveBrazilianShippingAddress(address);
+  const effectiveAddress = resolved.address;
+
   const originLat = Number(settings?.origin_latitude);
   const originLon = Number(settings?.origin_longitude);
   const hasOrigin = Number.isFinite(originLat) && Number.isFinite(originLon);
@@ -142,10 +309,14 @@ export async function calculateShippingQuote(
   let source: ShippingQuote["source"] = "fixed";
   let available = true;
   let addressValidationFailed = false;
+  let addressPrecision: AddressPrecision | null = null;
+  let addressValidatedBy: AddressLookupSource | null = resolved.postalLookup.source;
 
   if (hasOrigin) {
-    const destination = await geocodeBrazilianAddress(address);
+    const destination = await geocodeBrazilianAddress(effectiveAddress, resolved.postalLookup.coordinates);
     if (destination) {
+      addressPrecision = destination.precision;
+      addressValidatedBy = destination.validatedBy || addressValidatedBy;
       distanceKm = roundDistance(await routeDistanceKm({ lat: originLat, lon: originLon }, destination));
       const maxDistance = Number(settings?.max_distance_km ?? 10);
       if (distanceKm > maxDistance) {
@@ -165,15 +336,15 @@ export async function calculateShippingQuote(
     }
   }
 
-  // Fallback por bairro/CEP quando a geocodificação não estiver configurada/disponível.
+  // Fallback por bairro/CEP configurado pelo administrador.
   if (available && source === "fixed") {
-    const postalCode = digitsOnly(address.postal_code, 8);
+    const postalCode = digitsOnly(effectiveAddress.postal_code, 8);
     const { data: zones } = await supabase
       .from("delivery_zones")
       .select("delivery_fee,free_delivery_from,neighborhood,postal_code_prefix")
       .eq("store_id", store.id)
       .eq("active", true);
-    const normalizedNeighborhood = cleanText(address.neighborhood, 80).toLocaleLowerCase("pt-BR");
+    const normalizedNeighborhood = cleanText(effectiveAddress.neighborhood, 80).toLocaleLowerCase("pt-BR");
     const zone = (zones ?? []).find((item: any) => {
       const prefix = digitsOnly(item.postal_code_prefix, 8);
       const neighborhood = cleanText(item.neighborhood, 80).toLocaleLowerCase("pt-BR");
@@ -199,7 +370,13 @@ export async function calculateShippingQuote(
       freeDeliveryFrom,
       amountToFreeDelivery,
       source,
-      message: addressValidationFailed ? "Não foi possível validar este endereço para entrega. Confira os dados e tente novamente." : "Endereço fora da área de entrega configurada.",
+      addressPrecision,
+      addressApproximate: addressPrecision != null && addressPrecision !== "exact",
+      addressValidatedBy,
+      resolvedAddress: effectiveAddress,
+      message: addressValidationFailed
+        ? "O CEP parece válido, mas não conseguimos localizar a rua para calcular a rota. Confira rua, número e bairro ou tente novamente em instantes."
+        : "Endereço fora da área de entrega configurada.",
     };
   }
 
@@ -219,5 +396,9 @@ export async function calculateShippingQuote(
     freeDeliveryFrom,
     amountToFreeDelivery,
     source,
+    addressPrecision,
+    addressApproximate: addressPrecision != null && addressPrecision !== "exact",
+    addressValidatedBy,
+    resolvedAddress: effectiveAddress,
   };
 }
