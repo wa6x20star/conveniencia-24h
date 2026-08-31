@@ -1,3 +1,7 @@
+# Atualização V6.8.4
+
+Consulte [V6_8_4_CANCELAMENTOS_SETUP.md](V6_8_4_CANCELAMENTOS_SETUP.md) antes de instalar. Esta versão requer o SQL novo; estornos são registrados manualmente após devolução externa.
+
 > Versão atual do pacote: **V6.8.1 — Confirmação de Entrega**
 
 # Conveniência 24h

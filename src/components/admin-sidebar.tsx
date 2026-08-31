@@ -7,6 +7,7 @@ const links = [
   ["/admin/produtos", "□", "Produtos"],
   ["/admin/estoque", "▤", "Estoque"],
   ["/admin/entregas", "➜", "Entregas"],
+  ["/admin/notificacoes", "🔔", "Notificações"],
   ["/admin/repasses", "R$", "Repasses"],
 ];
 

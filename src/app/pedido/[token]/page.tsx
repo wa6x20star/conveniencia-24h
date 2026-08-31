@@ -13,7 +13,7 @@ const DELIVERY_CODES_KEY = "conveniencia24h.deliveryCodes.v1";
 const steps = [["received","Pedido recebido"],["picking","Em separação"],["ready","Pedido pronto"],["out_for_delivery","Saiu para entrega"],["delivered","Entregue"]] as const;
 const paymentLabels: Record<string,string> = { pix:"PIX", cash:"Dinheiro", card_on_delivery:"Cartão na entrega" };
 
-type Order = { order_number:number; status:string; payment_method:string; payment_status:string; subtotal:number; delivery_fee:number; total:number; customer_name:string; items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[]; history:{status:string;created_at:string}[]; cancellation_reason?:string; delivery?:{status:string;assigned_at?:string;started_at?:string;delivered_at?:string;driver_name?:string|null}|null; confirmation?:{status:string;method?:string|null;confirmed_at?:string|null}|null };
+type Order = { order_number:number; status:string; payment_method:string; payment_status:string; subtotal:number; delivery_fee:number; total:number; customer_name:string; items:{id:string;product_name:string;quantity:number;unit_price:number;total_price:number}[]; history:{status:string;created_at:string}[]; cancellation_reason?:string; refund_status?:string; refund_amount?:number; refunded_at?:string|null; delivery?:{status:string;assigned_at?:string;started_at?:string;delivered_at?:string;driver_name?:string|null}|null; confirmation?:{status:string;method?:string|null;confirmed_at?:string|null}|null };
 
 export default function TrackingPage() {
   const params = useParams<{ token: string }>();
@@ -71,13 +71,17 @@ export default function TrackingPage() {
             <h1 className="mt-4 text-3xl font-extrabold tracking-[-.035em]">Acompanhe seu pedido.</h1>
             <p className="mt-2 text-sm text-[#777066]">Você acompanha cada etapa sem precisar perguntar pelo WhatsApp.</p>
 
-            {order.status === "cancelled" ? <div className="mt-5 rounded-2xl bg-red-50 p-4 font-bold text-red-700">Pedido cancelado. {order.cancellation_reason || ""}</div> : (
+            {order.status === "cancelled" ? <div className="mt-5 rounded-2xl bg-red-50 p-4 font-bold text-red-700">Pedido cancelado. {order.cancellation_reason || ""}
+              {order.refund_status === "pending" && <p className="mt-2 text-sm">Estorno pendente: {brl.format(Number(order.refund_amount || 0))}. A loja precisa realizar a devolução; o cancelamento não devolve o dinheiro automaticamente.</p>}
+              {order.refund_status === "completed" && <p className="mt-2 text-sm">A loja registrou o estorno de {brl.format(Number(order.refund_amount || 0))} como realizado{order.refunded_at ? " em " + new Date(order.refunded_at).toLocaleString("pt-BR") : ""}.</p>}
+              {order.refund_status === "not_required" && <p className="mt-2 text-sm">Nenhum pagamento recebido consta no sistema. Se você já pagou, fale com a loja para conferência.</p>}
+            </div> : (
               <div className="mt-7">
                 {steps.map(([key,label],index) => { const done = currentIndex >= index; const active = currentIndex === index; return <div key={key} className="grid grid-cols-[40px_1fr] gap-3"><div className="flex flex-col items-center"><span className={`grid size-9 place-items-center rounded-full text-xs font-extrabold ${done ? "bg-[#C6A75E] text-[#1F2A44]" : "bg-[#F4ECDF] text-[#9C9286]"} ${active ? "ring-4 ring-[#C6A75E]/20" : ""}`}>{done ? "✓" : index + 1}</span>{index < steps.length - 1 && <span className={`h-10 w-0.5 ${currentIndex > index ? "bg-[#C6A75E]" : "bg-[#EFE5D6]"}`} />}</div><div className="pt-1.5"><p className={`font-display text-sm font-bold ${done ? "text-[#1F2A44]" : "text-[#9A9186]"}`}>{label}</p>{active && <p className="mt-0.5 text-[10px] font-semibold text-[#A88A45]">Etapa atual</p>}</div></div>; })}
               </div>
             )}
 
-            {order.delivery?.driver_name && (order.status === "out_for_delivery" || order.delivery.status === "started") && (
+            {order.status !== "cancelled" && order.delivery?.driver_name && (order.status === "out_for_delivery" || order.delivery.status === "started") && (
               <div className="mt-5 rounded-2xl bg-[#E8DCC8] p-4">
                 <p className="text-[9px] font-extrabold uppercase tracking-[.14em] text-[#8E8375]">Sua entrega</p>
                 <p className="mt-1 font-display text-base font-bold text-[#1F2A44]">{order.delivery.driver_name} está levando seu pedido.</p>

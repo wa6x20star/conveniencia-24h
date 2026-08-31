@@ -69,37 +69,17 @@ export async function POST(request: NextRequest) {
     const { error: uploadError } = await supabase.storage.from("delivery-proofs").upload(path, bytes, { contentType: file.type, upsert: false });
     if (uploadError) throw uploadError;
 
-    const { error: updateError } = await supabase.from("delivery_confirmations").update({
-      delivery_id: deliveryId,
-      status: "proof_pending",
-      payment_confirmed: paymentReceived,
-      proof_path: path,
-      proof_reason: reason,
-      proof_note: note || null,
-      proof_submitted_at: new Date().toISOString(),
-      proof_submitted_by: staff.user!.id,
-      reviewed_at: null,
-      reviewed_by: null,
-      review_note: null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", confirmation.id);
-
+    const { data: saved, error: updateError } = await supabase.rpc("submit_delivery_proof_v684", {
+      p_delivery_id: deliveryId, p_path: path, p_reason: reason, p_note: note || null,
+      p_payment_received: paymentReceived, p_user_id: staff.user!.id,
+    });
     if (updateError) {
       await supabase.storage.from("delivery-proofs").remove([path]).catch(() => undefined);
-      throw updateError;
+      return NextResponse.json({ error: "O estado da entrega mudou. Atualize a página antes de enviar novamente." }, { status: 409 });
     }
-
-    if (confirmation.proof_path && confirmation.proof_path !== path) {
-      await supabase.storage.from("delivery-proofs").remove([confirmation.proof_path]).catch(() => undefined);
+    if (saved?.previous_path && saved.previous_path !== path) {
+      await supabase.storage.from("delivery-proofs").remove([saved.previous_path]).catch(() => undefined);
     }
-
-    await supabase.from("audit_logs").insert({
-      user_id: staff.user!.id,
-      action: "delivery_proof_submitted",
-      entity_type: "delivery",
-      entity_id: deliveryId,
-      metadata: { order_id: delivery.order_id, reason, payment_received: paymentReceived },
-    });
 
     return NextResponse.json({ ok: true, status: "proof_pending" }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {

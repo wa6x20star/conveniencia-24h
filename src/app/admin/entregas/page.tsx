@@ -371,7 +371,7 @@ export default function DeliveriesPage() {
 
     {data.confirmationEnabled === false && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><strong>Confirmação de entrega ainda não ativada.</strong> Execute a migration V6.8.1 antes de criar novos pedidos.</div>}
 
-    {!!data.proofPending?.length && <section className="mt-5 rounded-[2rem] border-2 border-amber-200 bg-amber-50 p-5">
+    {!!data.proofPending?.length && <section id="comprovantes-pendentes" className="mt-5 scroll-mt-24 rounded-[2rem] border-2 border-amber-200 bg-amber-50 p-5">
       <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-amber-700">Ação necessária</p><h2 className="mt-1 text-xl font-black text-[#1F2A44]">Comprovantes de entrega pendentes</h2><p className="mt-1 text-sm text-amber-900/70">A foto é uma exceção ao código e só conclui o pedido depois da sua aprovação.</p></div><span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black text-amber-900">{data.proofPending.length} pendente{data.proofPending.length === 1 ? "" : "s"}</span></div>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">{data.proofPending.map((proof) => <article key={proof.id} className="overflow-hidden rounded-3xl border border-amber-200 bg-white">
         {proof.proofUrl ? <a href={proof.proofUrl} target="_blank" rel="noreferrer" className="block bg-slate-100"><img src={proof.proofUrl} alt="Comprovante fotográfico da entrega" className="h-52 w-full object-cover"/></a> : <div className="grid h-36 place-items-center bg-slate-100 text-sm text-slate-400">Foto indisponível</div>}

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tok
     const supabase = createAdminClient();
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id,order_number,status,payment_method,payment_status,subtotal,delivery_fee,discount,total,cancellation_reason,customer_name,created_at,delivered_at")
+      .select("id,order_number,status,payment_method,payment_status,subtotal,delivery_fee,discount,total,cancellation_reason,cancelled_at,refund_status,refund_amount,refunded_at,customer_name,created_at,delivered_at")
       .eq("tracking_token", token)
       .single();
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tok
       customer_name: firstNameOnly(order.customer_name),
       items: items ?? [],
       history: history ?? [],
-      delivery: delivery
+      delivery: order.status !== "cancelled" && delivery
         ? {
             status: delivery.status,
             assigned_at: delivery.assigned_at,
