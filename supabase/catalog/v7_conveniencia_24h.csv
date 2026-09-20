@@ -1,0 +1,201 @@
+sku|name|category|category_slug|subcategory|unit|reference_price|minimum_stock|active
+MER-V7-001|Arroz Tio João Tipo 1 1kg|Mercearia|mercearia|Arroz branco|un|10.99|6|true
+MER-V7-002|Arroz Camil Tipo 1 1kg|Mercearia|mercearia|Arroz branco|un|9.99|6|true
+MER-V7-003|Arroz Parboilizado Tio João 1kg|Mercearia|mercearia|Arroz parboilizado|un|11.99|5|true
+MER-V7-004|Arroz Integral Tio João 1kg|Mercearia|mercearia|Arroz integral|un|13.99|4|true
+MER-V7-005|Feijão Carioca Broto Legal Tipo 1 1kg|Mercearia|mercearia|Feijão|un|8.49|8|true
+MER-V7-006|Feijão Carioca Kicaldo Tipo 1 1kg|Mercearia|mercearia|Feijão|un|8.99|8|true
+MER-V7-007|Feijão Preto Camil Tipo 1 1kg|Mercearia|mercearia|Feijão|un|9.99|5|true
+MER-V7-008|Feijão Macassa Kicaldo 500g|Mercearia|mercearia|Feijão|un|7.49|5|true
+MER-V7-009|Feijão Verde Kicaldo 500g|Mercearia|mercearia|Feijão|un|8.49|4|true
+MER-V7-010|Lentilha Camil 500g|Mercearia|mercearia|Leguminosas|un|9.99|4|true
+MER-V7-011|Grão-de-bico Camil 500g|Mercearia|mercearia|Leguminosas|un|10.99|4|true
+MER-V7-012|Ervilha Seca Yoki 500g|Mercearia|mercearia|Leguminosas|un|7.99|4|true
+MER-V7-013|Açúcar Cristal União 1kg|Mercearia|mercearia|Açúcar|un|5.49|8|true
+MER-V7-014|Açúcar Refinado União 1kg|Mercearia|mercearia|Açúcar|un|5.99|6|true
+MER-V7-015|Adoçante Zero-Cal 100ml|Mercearia|mercearia|Adoçantes|un|7.99|3|true
+MER-V7-016|Sal Refinado Cisne 1kg|Mercearia|mercearia|Sal|un|3.49|6|true
+MER-V7-017|Farinha de Trigo Dona Benta 1kg|Mercearia|mercearia|Farinha de trigo|un|7.99|5|true
+MER-V7-018|Farinha de Mandioca Yoki Torrada 500g|Mercearia|mercearia|Farinha de mandioca|un|8.49|4|true
+MER-V7-019|Farinha de Rosca Yoki 500g|Mercearia|mercearia|Farinha de rosca|un|9.49|3|true
+MER-V7-020|Polvilho Doce Amafil 500g|Mercearia|mercearia|Polvilho|un|8.99|3|true
+CUS-V7-001|Flocão de Milho Vitamilho 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Flocão de milho|un|3.99|10|true
+CUS-V7-002|Flocão de Milho Maratá 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Flocão de milho|un|4.29|10|true
+CUS-V7-003|Flocão de Milho Yoki 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Flocão de milho|un|5.49|6|true
+CUS-V7-004|Milharina Quaker 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Flocão de milho|un|5.99|5|true
+CUS-V7-005|Fubá de Milho Yoki 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Fubá|un|4.99|5|true
+CUS-V7-006|Massa para Cuscuz São Braz 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Massa para cuscuz|un|5.49|6|true
+CUS-V7-007|Tapioca Hidratada Da Terrinha 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Tapioca|un|8.99|6|true
+CUS-V7-008|Goma de Tapioca Yoki 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Tapioca|un|9.99|4|true
+CUS-V7-009|Farinha de Milho Flocada Maratá 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Flocão de milho|un|4.49|6|true
+CUS-V7-010|Canjica de Milho Yoki 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Canjica|un|7.49|4|true
+CUS-V7-011|Mungunzá de Milho Yoki 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Mungunzá|un|7.49|4|true
+CUS-V7-012|Milho para Pipoca Yoki 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Pipoca|un|8.49|5|true
+CUS-V7-013|Cuscuz de Milho São Braz 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Massa para cuscuz|un|5.99|5|true
+CUS-V7-014|Farinha de Mandioca Puba 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Farinha de mandioca|un|7.99|3|true
+CUS-V7-015|Farinha de Tapioca Granulada Amafil 500g|Cuscuz e Farinhas|cuscuz-e-farinhas|Tapioca|un|9.49|3|true
+CUS-V7-016|Aveia em Flocos Quaker 170g|Cuscuz e Farinhas|cuscuz-e-farinhas|Aveia|un|7.49|4|true
+CUS-V7-017|Aveia em Flocos Finos Quaker 170g|Cuscuz e Farinhas|cuscuz-e-farinhas|Aveia|un|7.49|4|true
+CUS-V7-018|Amido de Milho Maizena 200g|Cuscuz e Farinhas|cuscuz-e-farinhas|Amidos|un|6.99|4|true
+CUS-V7-019|Mistura para Bolo Dona Benta Chocolate 450g|Cuscuz e Farinhas|cuscuz-e-farinhas|Mistura para bolo|un|9.99|3|true
+CUS-V7-020|Mistura para Bolo Dona Benta Baunilha 450g|Cuscuz e Farinhas|cuscuz-e-farinhas|Mistura para bolo|un|9.99|3|true
+CAF-V7-001|Café Pilão Tradicional 500g|Café da Manhã|cafe-da-manha|Café torrado e moído|un|29.90|6|true
+CAF-V7-002|Café Pilão Extra Forte 500g|Café da Manhã|cafe-da-manha|Café torrado e moído|un|21.90|5|true
+CAF-V7-003|Café Melitta Tradicional 500g|Café da Manhã|cafe-da-manha|Café torrado e moído|un|21.90|5|true
+CAF-V7-004|Café 3 Corações Tradicional 500g|Café da Manhã|cafe-da-manha|Café torrado e moído|un|22.90|5|true
+CAF-V7-005|Leite em Pó Ninho Integral 400g|Café da Manhã|cafe-da-manha|Leite em pó|un|21.99|5|true
+CAF-V7-006|Leite em Pó Italac Integral 400g|Café da Manhã|cafe-da-manha|Leite em pó|un|16.99|4|true
+CAF-V7-007|Leite UHT Integral Italac 1L|Café da Manhã|cafe-da-manha|Leite UHT|un|6.99|10|true
+CAF-V7-008|Leite UHT Desnatado Italac 1L|Café da Manhã|cafe-da-manha|Leite UHT|un|6.99|5|true
+CAF-V7-009|Achocolatado Nescau 200g|Café da Manhã|cafe-da-manha|Achocolatado|un|8.99|5|true
+CAF-V7-010|Achocolatado Toddy 200g|Café da Manhã|cafe-da-manha|Achocolatado|un|8.99|4|true
+CAF-V7-011|Biscoito Cream Cracker Fortaleza 350g|Café da Manhã|cafe-da-manha|Biscoitos salgados|un|6.49|6|true
+CAF-V7-012|Biscoito Maizena Vitarella 350g|Café da Manhã|cafe-da-manha|Biscoitos doces|un|6.99|6|true
+CAF-V7-013|Biscoito Maria Vitarella 350g|Café da Manhã|cafe-da-manha|Biscoitos doces|un|6.99|5|true
+CAF-V7-014|Biscoito Recheado Treloso Chocolate 126g|Café da Manhã|cafe-da-manha|Biscoitos recheados|un|3.49|8|true
+CAF-V7-015|Biscoito Recheado Treloso Morango 126g|Café da Manhã|cafe-da-manha|Biscoitos recheados|un|3.49|8|true
+CAF-V7-016|Torrada Bauducco Tradicional 142g|Café da Manhã|cafe-da-manha|Torradas|un|8.99|4|true
+CAF-V7-017|Cereal Matinal Nescau 210g|Café da Manhã|cafe-da-manha|Cereais|un|13.99|3|true
+CAF-V7-018|Granola Tradicional Mãe Terra 250g|Café da Manhã|cafe-da-manha|Granola|un|15.99|3|true
+CAF-V7-019|Margarina Qualy Cremosa 250g|Café da Manhã|cafe-da-manha|Margarinas|un|7.49|6|true
+CAF-V7-020|Requeijão Cremoso Vigor 200g|Café da Manhã|cafe-da-manha|Requeijões|un|10.99|4|true
+LAT-V7-001|Sardinha Gomes da Costa em Óleo 125g|Enlatados|enlatados|Sardinhas|un|8.99|6|true
+LAT-V7-002|Sardinha Coqueiro em Molho de Tomate 125g|Enlatados|enlatados|Sardinhas|un|8.99|6|true
+LAT-V7-003|Atum Gomes da Costa Ralado em Óleo 170g|Enlatados|enlatados|Atuns|un|12.99|5|true
+LAT-V7-004|Atum Coqueiro Sólido em Óleo 170g|Enlatados|enlatados|Atuns|un|13.99|4|true
+LAT-V7-005|Milho Verde Quero 170g|Enlatados|enlatados|Milho verde|un|4.99|8|true
+LAT-V7-006|Ervilha Quero 170g|Enlatados|enlatados|Ervilhas|un|4.99|6|true
+LAT-V7-007|Seleta de Legumes Quero 170g|Enlatados|enlatados|Seleta de legumes|un|5.49|5|true
+LAT-V7-008|Milho Verde Bonare 170g|Enlatados|enlatados|Milho verde|un|4.49|6|true
+LAT-V7-009|Extrato de Tomate Elefante 130g|Enlatados|enlatados|Extratos de tomate|un|5.49|8|true
+LAT-V7-010|Extrato de Tomate Quero 300g|Enlatados|enlatados|Extratos de tomate|un|7.49|6|true
+LAT-V7-011|Molho de Tomate Quero Tradicional 300g|Enlatados|enlatados|Molhos de tomate|un|4.49|8|true
+LAT-V7-012|Molho de Tomate Fugini Tradicional 300g|Enlatados|enlatados|Molhos de tomate|un|3.99|8|true
+LAT-V7-013|Passata de Tomate Pomarola 680g|Enlatados|enlatados|Molhos de tomate|un|12.99|4|true
+LAT-V7-014|Leite Condensado Moça 395g|Enlatados|enlatados|Leites condensados|un|10.99|5|true
+LAT-V7-015|Leite Condensado Italac 395g|Enlatados|enlatados|Leites condensados|un|8.99|5|true
+LAT-V7-016|Creme de Leite Nestlé 200g|Enlatados|enlatados|Cremes de leite|un|5.99|6|true
+LAT-V7-017|Creme de Leite Italac 200g|Enlatados|enlatados|Cremes de leite|un|4.99|6|true
+LAT-V7-018|Leite de Coco Sococo 200ml|Enlatados|enlatados|Leites de coco|un|7.49|4|true
+LAT-V7-019|Coco Ralado Sococo 100g|Enlatados|enlatados|Coco ralado|un|7.99|4|true
+LAT-V7-020|Azeitona Verde Vale Fértil 160g|Enlatados|enlatados|Azeitonas|un|9.99|4|true
+TEM-V7-001|Óleo de Soja Liza 900ml|Temperos e Molhos|temperos-e-molhos|Óleos|un|9.99|8|true
+TEM-V7-002|Óleo de Soja Soya 900ml|Temperos e Molhos|temperos-e-molhos|Óleos|un|9.49|8|true
+TEM-V7-003|Azeite de Oliva Gallo Extra Virgem 250ml|Temperos e Molhos|temperos-e-molhos|Azeites|un|27.99|3|true
+TEM-V7-004|Vinagre de Álcool Castelo 750ml|Temperos e Molhos|temperos-e-molhos|Vinagres|un|5.99|4|true
+TEM-V7-005|Vinagre de Maçã Castelo 750ml|Temperos e Molhos|temperos-e-molhos|Vinagres|un|8.99|3|true
+TEM-V7-006|Molho de Pimenta Maratá 150ml|Temperos e Molhos|temperos-e-molhos|Molhos de pimenta|un|5.49|4|true
+TEM-V7-007|Ketchup Hellmann's Tradicional 200g|Temperos e Molhos|temperos-e-molhos|Ketchup|un|9.99|5|true
+TEM-V7-008|Maionese Hellmann's Tradicional 250g|Temperos e Molhos|temperos-e-molhos|Maioneses|un|10.99|5|true
+TEM-V7-009|Mostarda Hemmer 200g|Temperos e Molhos|temperos-e-molhos|Mostardas|un|8.49|3|true
+TEM-V7-010|Molho Shoyu Sakura 150ml|Temperos e Molhos|temperos-e-molhos|Molhos orientais|un|7.99|3|true
+TEM-V7-011|Caldo de Galinha Knorr 57g|Temperos e Molhos|temperos-e-molhos|Caldos|un|4.99|6|true
+TEM-V7-012|Tempero Completo Arisco 300g|Temperos e Molhos|temperos-e-molhos|Temperos completos|un|8.99|4|true
+TEM-V7-013|Tempero Sazón Arroz 60g|Temperos e Molhos|temperos-e-molhos|Temperos prontos|un|5.99|4|true
+TEM-V7-014|Pimenta-do-Reino Kitano 50g|Temperos e Molhos|temperos-e-molhos|Especiarias|un|7.49|4|true
+TEM-V7-015|Colorífico Maratá 97g|Temperos e Molhos|temperos-e-molhos|Temperos secos|un|3.49|5|true
+TEM-V7-016|Orégano Kitano 8g|Temperos e Molhos|temperos-e-molhos|Ervas secas|un|4.99|4|true
+TEM-V7-017|Cominho Kitano 40g|Temperos e Molhos|temperos-e-molhos|Especiarias|un|5.99|4|true
+TEM-V7-018|Macarrão Espaguete Adria 500g|Temperos e Molhos|temperos-e-molhos|Massas|un|5.99|8|true
+TEM-V7-019|Macarrão Parafuso Renata 500g|Temperos e Molhos|temperos-e-molhos|Massas|un|6.49|6|true
+TEM-V7-020|Macarrão Instantâneo Nissin Galinha Caipira 85g|Temperos e Molhos|temperos-e-molhos|Macarrão instantâneo|un|3.49|10|true
+BEB-V7-001|Água Mineral Crystal sem Gás 500ml|Bebidas|bebidas|Águas|un|2.49|12|true
+BEB-V7-002|Água Mineral Crystal com Gás 500ml|Bebidas|bebidas|Águas|un|2.99|10|true
+BEB-V7-003|Água Mineral Indaiá sem Gás 1,5L|Bebidas|bebidas|Águas|un|4.49|8|true
+BEB-V7-004|Água de Coco Sococo 200ml|Bebidas|bebidas|Água de coco|un|5.49|6|true
+BEB-V7-005|Coca-Cola Original Lata 350ml|Bebidas|bebidas|Refrigerantes|un|5.99|12|true
+BEB-V7-006|Coca-Cola Zero Açúcar Lata 350ml|Bebidas|bebidas|Refrigerantes|un|5.99|10|true
+BEB-V7-007|Coca-Cola Original 600ml|Bebidas|bebidas|Refrigerantes|un|7.49|8|true
+BEB-V7-008|Coca-Cola Zero Açúcar 2L|Bebidas|bebidas|Refrigerantes|un|10.99|5|true
+BEB-V7-009|Guaraná Antarctica Lata 350ml|Bebidas|bebidas|Refrigerantes|un|4.99|10|true
+BEB-V7-010|Guaraná Antarctica Zero Lata 350ml|Bebidas|bebidas|Refrigerantes|un|4.99|8|true
+BEB-V7-011|Fanta Laranja Lata 350ml|Bebidas|bebidas|Refrigerantes|un|4.99|8|true
+BEB-V7-012|Sprite Lata 350ml|Bebidas|bebidas|Refrigerantes|un|4.99|8|true
+BEB-V7-013|Pepsi Cola Lata 350ml|Bebidas|bebidas|Refrigerantes|un|4.49|8|true
+BEB-V7-014|Suco Del Valle Uva 1L|Bebidas|bebidas|Sucos|un|9.99|6|true
+BEB-V7-015|Suco Del Valle Pêssego 1L|Bebidas|bebidas|Sucos|un|9.99|5|true
+BEB-V7-016|Néctar Maguary Caju 1L|Bebidas|bebidas|Sucos|un|8.99|5|true
+BEB-V7-017|Chá Leão Matte Limão 1,5L|Bebidas|bebidas|Chás prontos|un|9.99|4|true
+BEB-V7-018|Gatorade Limão 500ml|Bebidas|bebidas|Isotônicos|un|8.99|6|true
+BEB-V7-019|Monster Energy Original 473ml|Bebidas|bebidas|Energéticos|un|12.99|5|true
+BEB-V7-020|Energético Fusion Energy Drink 269ml|Bebidas|bebidas|Energéticos|un|6.99|5|true
+BOM-V7-001|Chocolate Lacta ao Leite 90g|Bomboniere|bomboniere|Barras de chocolate|un|8.99|8|true
+BOM-V7-002|Chocolate Lacta Diamante Negro 80g|Bomboniere|bomboniere|Barras de chocolate|un|8.99|6|true
+BOM-V7-003|Chocolate Nestlé Classic ao Leite 80g|Bomboniere|bomboniere|Barras de chocolate|un|8.99|6|true
+BOM-V7-004|Chocolate Nestlé Alpino 85g|Bomboniere|bomboniere|Barras de chocolate|un|9.99|5|true
+BOM-V7-005|Chocolate Hershey's ao Leite 77g|Bomboniere|bomboniere|Barras de chocolate|un|8.49|5|true
+BOM-V7-006|Chocolate Baton ao Leite 16g|Bomboniere|bomboniere|Bombons|un|2.49|12|true
+BOM-V7-007|Bombom Ouro Branco 20g|Bomboniere|bomboniere|Bombons|un|2.49|12|true
+BOM-V7-008|Chocolate Lacta Laka 80g|Bomboniere|bomboniere|Barras de chocolate|un|8.99|6|true
+BOM-V7-009|KitKat ao Leite 41,5g|Bomboniere|bomboniere|Wafer coberto|un|6.99|8|true
+BOM-V7-010|M&M's Chocolate 45g|Bomboniere|bomboniere|Confeitos|un|7.49|6|true
+BOM-V7-011|Skittles Frutas 38g|Bomboniere|bomboniere|Confeitos|un|6.49|5|true
+BOM-V7-012|Halls Cereja 27,5g|Bomboniere|bomboniere|Balas|un|2.99|10|true
+BOM-V7-013|Halls Menthol 27,5g|Bomboniere|bomboniere|Balas|un|2.99|8|true
+BOM-V7-014|Trident Fresh Intense 30,6g|Bomboniere|bomboniere|Gomas de mascar|un|5.49|8|true
+BOM-V7-015|Trident Melancia 30,6g|Bomboniere|bomboniere|Gomas de mascar|un|5.49|8|true
+BOM-V7-016|Paçoquita Zero Adição de Açúcar 18g|Bomboniere|bomboniere|Paçocas|un|2.49|10|true
+BOM-V7-017|Pé-de-Moleque Santa Helena 20g|Bomboniere|bomboniere|Doces de amendoim|un|1.99|10|true
+BOM-V7-018|Bala 7Belo Framboesa 100g|Bomboniere|bomboniere|Balas|un|5.49|5|true
+BOM-V7-019|Bala Fini Beijos 80g|Bomboniere|bomboniere|Balas de gelatina|un|9.99|5|true
+BOM-V7-020|Oreo Original 36g|Bomboniere|bomboniere|Biscoitos individuais|un|2.99|10|true
+HIG-V7-001|Sabonete Dove Karité e Baunilha 90g|Higiene|higiene|Sabonetes|un|5.99|8|true
+HIG-V7-002|Sabonete Lux Branco 85g|Higiene|higiene|Sabonetes|un|3.49|8|true
+HIG-V7-003|Sabonete Protex Suave 85g|Higiene|higiene|Sabonetes|un|4.49|6|true
+HIG-V7-004|Creme Dental Oral-B 3D White 70g|Higiene|higiene|Creme dental|un|7.99|5|true
+HIG-V7-005|Creme Dental Sorriso Dentes Brancos 90g|Higiene|higiene|Creme dental|un|4.99|5|true
+HIG-V7-006|Escova Dental Colgate Zig Zag Média|Higiene|higiene|Escovas dentais|un|6.99|6|true
+HIG-V7-007|Fio Dental Colgate 25m|Higiene|higiene|Fio dental|un|8.99|3|true
+HIG-V7-008|Papel Higiênico Neve Folha Dupla 4 Rolos|Higiene|higiene|Papel higiênico|un|11.99|5|true
+HIG-V7-009|Papel Higiênico Personal Folha Dupla 4 Rolos|Higiene|higiene|Papel higiênico|un|9.99|5|true
+HIG-V7-010|Absorvente Sempre Livre Suave com Abas 8 Unidades|Higiene|higiene|Absorventes|un|8.99|5|true
+HIG-V7-011|Absorvente Intimus Noturno com Abas 8 Unidades|Higiene|higiene|Absorventes|un|9.99|4|true
+HIG-V7-012|Fralda Pom Pom Protek Proteção M 20 Unidades|Higiene|higiene|Fraldas|un|29.99|3|true
+HIG-V7-013|Shampoo Seda Ceramidas 325ml|Higiene|higiene|Shampoos|un|14.99|4|true
+HIG-V7-014|Condicionador Seda Ceramidas 325ml|Higiene|higiene|Condicionadores|un|14.99|4|true
+HIG-V7-015|Desodorante Rexona Men Aerosol 150ml|Higiene|higiene|Desodorantes|un|17.99|5|true
+HIG-V7-016|Desodorante Nivea Men Roll On 50ml|Higiene|higiene|Desodorantes|un|12.99|5|true
+HIG-V7-017|Aparelho de Barbear Bic Comfort 3 Unidades|Higiene|higiene|Lâminas|un|12.99|4|true
+HIG-V7-018|Lenço Umedecido Baby Wipes 48 Unidades|Higiene|higiene|Lenços umedecidos|un|10.99|4|true
+HIG-V7-019|Algodão Apolo 50g|Higiene|higiene|Algodão|un|6.49|3|true
+HIG-V7-020|Álcool em Gel Asseptgel 70% 500g|Higiene|higiene|Álcool em gel|un|12.99|4|true
+LIM-V7-001|Detergente Ypê Clear 500ml|Limpeza|limpeza|Detergentes|un|3.49|8|true
+LIM-V7-002|Detergente Ypê Limão 500ml|Limpeza|limpeza|Detergentes|un|3.49|8|true
+LIM-V7-003|Lava-Louças Limpol Neutro 500ml|Limpeza|limpeza|Detergentes|un|3.99|6|true
+LIM-V7-004|Sabão em Pó Omo Lavagem Perfeita 800g|Limpeza|limpeza|Sabão em pó|un|19.99|5|true
+LIM-V7-005|Sabão em Pó Tixan Ypê Primavera 800g|Limpeza|limpeza|Sabão em pó|un|14.99|5|true
+LIM-V7-006|Sabão em Barra Ypê Neutro 5 Unidades|Limpeza|limpeza|Sabão em barra|un|10.99|5|true
+LIM-V7-007|Amaciante Ypê Aconchego 1L|Limpeza|limpeza|Amaciantes|un|9.99|4|true
+LIM-V7-008|Amaciante Comfort Concentrado 500ml|Limpeza|limpeza|Amaciantes|un|14.99|4|true
+LIM-V7-009|Água Sanitária Qboa 1L|Limpeza|limpeza|Água sanitária|un|6.49|6|true
+LIM-V7-010|Desinfetante Pinho Sol Original 500ml|Limpeza|limpeza|Desinfetantes|un|8.99|5|true
+LIM-V7-011|Desinfetante Ypê Floral 2L|Limpeza|limpeza|Desinfetantes|un|10.99|4|true
+LIM-V7-012|Multiuso Veja Original 500ml|Limpeza|limpeza|Limpadores multiuso|un|10.99|5|true
+LIM-V7-013|Limpador Veja Banheiro 500ml|Limpeza|limpeza|Limpadores multiuso|un|11.99|4|true
+LIM-V7-014|Esponja Scotch-Brite Multiuso 3 Unidades|Limpeza|limpeza|Esponjas|un|6.99|6|true
+LIM-V7-015|Lã de Aço Assolan 8 Unidades|Limpeza|limpeza|Lã de aço|un|4.99|5|true
+LIM-V7-016|Pano Multiuso Perfex 5 Unidades|Limpeza|limpeza|Panos|un|8.99|4|true
+LIM-V7-017|Saco para Lixo Dover Reforçado 30L 10 Unidades|Limpeza|limpeza|Sacos para lixo|un|8.99|5|true
+LIM-V7-018|Saco para Lixo Dover Reforçado 50L 10 Unidades|Limpeza|limpeza|Sacos para lixo|un|11.99|4|true
+LIM-V7-019|Inseticida SBP Aerossol Multi-Insetos 300ml|Limpeza|limpeza|Inseticidas|un|18.99|3|true
+LIM-V7-020|Álcool Zulu 46% 1L|Limpeza|limpeza|Álcool líquido|un|9.99|4|true
+UTI-V7-001|Pilha Duracell AA 2 Unidades|Utilidades|utilidades|Pilhas|un|14.99|5|true
+UTI-V7-002|Pilha Duracell AAA 2 Unidades|Utilidades|utilidades|Pilhas|un|14.99|5|true
+UTI-V7-003|Pilha Rayovac AA 2 Unidades|Utilidades|utilidades|Pilhas|un|9.99|5|true
+UTI-V7-004|Isqueiro Bic Maxi|Utilidades|utilidades|Isqueiros|un|8.99|8|true
+UTI-V7-005|Fósforo Fiat Lux 10 Caixas|Utilidades|utilidades|Fósforos|un|6.49|4|true
+UTI-V7-006|Vela Branca Parafina 8 Unidades|Utilidades|utilidades|Velas|un|11.99|4|true
+UTI-V7-007|Filtro de Papel Melitta 102 30 Unidades|Utilidades|utilidades|Filtros de café|un|7.99|5|true
+UTI-V7-008|Papel Alumínio Wyda 30cm x 4m|Utilidades|utilidades|Papel alumínio|un|7.49|4|true
+UTI-V7-009|Filme PVC Wyda 28cm x 15m|Utilidades|utilidades|Filme plástico|un|7.99|4|true
+UTI-V7-010|Guardanapo Scott 50 Unidades|Utilidades|utilidades|Guardanapos|un|5.49|6|true
+UTI-V7-011|Copo Descartável Copobras 200ml 100 Unidades|Utilidades|utilidades|Copos descartáveis|un|12.99|5|true
+UTI-V7-012|Prato Descartável Copobras 15cm 10 Unidades|Utilidades|utilidades|Pratos descartáveis|un|5.99|5|true
+UTI-V7-013|Talher Descartável Plastilânia 50 Unidades|Utilidades|utilidades|Talheres descartáveis|un|9.99|4|true
+UTI-V7-014|Palito de Dente Theoto 100 Unidades|Utilidades|utilidades|Palitos|un|3.99|5|true
+UTI-V7-015|Palito de Churrasco Theoto 50 Unidades|Utilidades|utilidades|Palitos|un|6.99|4|true
+UTI-V7-016|Lâmpada LED Ourolux 9W Bivolt|Utilidades|utilidades|Lâmpadas|un|9.99|5|true
+UTI-V7-017|Lâmpada LED Ourolux 12W Bivolt|Utilidades|utilidades|Lâmpadas|un|11.99|4|true
+UTI-V7-018|Extensão Elétrica Daneva 3 Tomadas 1,5m|Utilidades|utilidades|Elétricos|un|24.99|3|true
+UTI-V7-019|Carregador USB Geonav 1 Porta|Utilidades|utilidades|Carregadores|un|29.99|3|true
+UTI-V7-020|Cabo USB-C Geonav 1m|Utilidades|utilidades|Cabos|un|24.99|3|true
