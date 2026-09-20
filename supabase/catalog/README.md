@@ -16,3 +16,7 @@ O SQL só insere categorias, produtos, vínculos da Loja Piedade e inventário q
 ## Preços
 
 Os valores são referências provisórias de varejo para preencher o campo obrigatório `store_products.price`; não são preços do Atacadão nem recomendação de preço final. Eles devem ser revisados pela administração antes de repor/colocar os itens à venda. As referências públicas observadas em 20/09/2026 incluem Café Pilão Tradicional 500g, Arroz Tio João 1kg e Feijão Carioca Broto Legal 1kg. Nenhuma imagem foi importada.
+
+## Imagens do catálogo
+
+Todos os produtos usam apenas imagens originais do projeto em `public/catalog/`. Não use links diretos de imagens hospedadas por varejistas ou outros terceiros.
