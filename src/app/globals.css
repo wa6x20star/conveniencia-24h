@@ -16,6 +16,12 @@
   --foreground: #1f2a44;
 }
 
+body {
+  --navy: var(--store-primary, #1f2a44);
+  --gold: var(--store-accent, #c6a75e);
+  --gold-dark: var(--store-accent-dark, #a88a45);
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {

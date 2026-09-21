@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ClockIcon, DeliveryIcon, HeadsetIcon, ShieldIcon, TagIcon } from "@/components/brand-icons";
 import { BrandLogo } from "@/components/brand-logo";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 const benefits = [
   { icon: ClockIcon, title: "Aberto sempre", text: "Compre a qualquer hora do dia ou da noite." },
@@ -38,7 +39,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-4 border-t border-white/10 px-5 py-5 sm:flex-row sm:items-center sm:justify-between md:px-7">
           <BrandLogo inverted tagline />
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] font-medium text-[#CFC6B7]">
-            <span>Conveniência online • atendimento 24 horas</span>
+            <span>{STORE_CONFIG.name} • {STORE_CONFIG.serviceLabel.toLocaleLowerCase("pt-BR")}</span>
             <span className="hidden h-3 w-px bg-white/15 sm:block" aria-hidden="true" />
             <Link
               href="/admin/estoque"

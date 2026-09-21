@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { CartIcon } from "@/components/brand-icons";
 import { useCart } from "@/components/cart-provider";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export function StoreHeader() {
   const { totalItems } = useCart();
@@ -12,7 +13,7 @@ export function StoreHeader() {
     <header className="sticky top-0 z-40 border-b border-[#E8DCC8] bg-[#fffdf9]/96 backdrop-blur-xl">
       <div className="hidden bg-[#1F2A44] text-[#F7F2E9] md:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 text-[10px] font-bold tracking-wide">
-          <span className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-[#C6A75E]" /> ABERTO 24 HORAS</span>
+          <span className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-[#C6A75E]" /> {STORE_CONFIG.serviceLabel.toUpperCase()}</span>
           <div className="flex items-center gap-6 text-[#E8DCC8]">
             <span>Entrega rápida</span>
             <span>Compra simples</span>
@@ -27,7 +28,7 @@ export function StoreHeader() {
         <div className="min-w-0 flex-1 md:hidden">
           <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#8F7B5B]">Entregar em</p>
           <button className="flex max-w-full items-center gap-1 truncate text-sm font-extrabold text-[#1F2A44]">
-            <span className="text-[#C6A75E]">●</span> Piedade, Jaboatão <span className="text-[#C6A75E]">⌄</span>
+            <span className="text-[#C6A75E]">●</span> {STORE_CONFIG.locationLabel} <span className="text-[#C6A75E]">⌄</span>
           </button>
         </div>
 
@@ -40,7 +41,7 @@ export function StoreHeader() {
 
         <div className="hidden min-w-0 border-l border-[#E8DCC8] pl-5 md:block">
           <p className="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#8F7B5B]">Entregar em</p>
-          <button className="max-w-40 truncate text-xs font-extrabold text-[#1F2A44]">Piedade, Jaboatão</button>
+          <button className="max-w-40 truncate text-xs font-extrabold text-[#1F2A44]">{STORE_CONFIG.locationLabel}</button>
         </div>
 
         <Link

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 type BrandMarkProps = {
   className?: string;
@@ -36,12 +37,11 @@ export function BrandLogo({ href = "/", className = "", inverted = false, compac
       {!compact && (
         <div className="min-w-0">
           <div className={`font-display flex items-baseline gap-1 whitespace-nowrap font-extrabold tracking-[-.045em] ${inverted ? "text-white" : "text-[#1F2A44]"}`}>
-            <span className="text-[1.05rem] sm:text-[1.18rem] md:text-[1.28rem]">Conveniência</span>
-            <span className="text-[1.05rem] text-[#C6A75E] sm:text-[1.18rem] md:text-[1.28rem]">24h</span>
+            <span className="text-[1.05rem] sm:text-[1.18rem] md:text-[1.28rem]">{STORE_CONFIG.name}</span>
           </div>
           {tagline && (
             <p className={`mt-0.5 hidden text-[7px] font-bold uppercase tracking-[.24em] md:block ${inverted ? "text-[#E8DCC8]" : "text-[#776E63]"}`}>
-              Tudo o que você precisa, a qualquer hora.
+              {STORE_CONFIG.tagline}
             </p>
           )}
         </div>
@@ -49,5 +49,5 @@ export function BrandLogo({ href = "/", className = "", inverted = false, compac
     </div>
   );
 
-  return href ? <Link href={href} aria-label="Conveniência 24h - início">{content}</Link> : content;
+  return href ? <Link href={href} aria-label={`${STORE_CONFIG.name} - início`}>{content}</Link> : content;
 }

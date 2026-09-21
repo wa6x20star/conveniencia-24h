@@ -9,8 +9,9 @@ import { StoreHeader } from "@/components/store-header";
 import { useCatalog } from "@/components/catalog-provider";
 import { categories } from "@/lib/mock-data";
 import { DEFAULT_CITY, DEFAULT_STATE } from "@/lib/config";
+import { STORE_CONFIG } from "@/lib/store-config";
 
-const quickTerms = ["Água", "Gelo", "Chocolate", "Doritos", "Refrigerante"];
+const quickTerms = STORE_CONFIG.quickTerms;
 const heroHighlights = [
   { Icon: DeliveryIcon, title: "Entrega rápida", text: "Chegou, pediu, recebeu." },
   { Icon: ClockIcon, title: "Aberto 24h", text: "Sempre que você precisar." },
@@ -42,16 +43,16 @@ export default function Home() {
           <div className="relative min-h-[610px] overflow-hidden rounded-[2rem] md:min-h-[650px] lg:min-h-[690px]">
             <div className="relative z-20 max-w-[690px] px-6 pb-[310px] pt-12 sm:px-8 md:w-[53%] md:px-10 md:pb-40 md:pt-16 lg:px-12 lg:pt-20">
               <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#C6A75E] px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.22em] text-[#1F2A44]">
-                <ClockIcon className="size-4" /> Aberto 24 horas
+                <ClockIcon className="size-4" /> {STORE_CONFIG.serviceLabel}
               </span>
 
               <h1 className="mt-7 text-[3.5rem] font-extrabold leading-[0.92] tracking-[-.065em] text-[#1F2A44] sm:text-[4.2rem] md:text-[4.5rem] lg:text-[5.35rem]">
-                Faltou? <br />
-                <span className="text-[#C6A75E]">A gente leva.</span>
+                {STORE_CONFIG.heroTitle} <br />
+                <span className="text-[#C6A75E]">{STORE_CONFIG.heroHighlight}</span>
               </h1>
 
               <p className="mt-6 max-w-[620px] text-base font-medium leading-7 text-[#393731] sm:text-[1.05rem] lg:text-[1.12rem]">
-                Bebidas, bomboniere, snacks e itens do dia a dia com <strong className="font-extrabold text-[#1F2A44]">entrega rápida</strong> em {DEFAULT_CITY} e região.
+                {STORE_CONFIG.heroDescription} <strong className="font-extrabold text-[#1F2A44]">em {DEFAULT_CITY} e região.</strong>
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -66,8 +67,8 @@ export default function Home() {
 
             <div className="pointer-events-none absolute inset-x-0 bottom-[120px] top-[150px] z-10 md:inset-y-0 md:left-[44%] md:right-[-2%]">
               <img
-                src="/hero/hero-products-integrated.png"
-                alt="Sacola da Conveniência 24h com bebidas, snacks e bomboniere"
+                src={STORE_CONFIG.heroImage}
+                alt={STORE_CONFIG.heroImageAlt}
                 className="absolute bottom-[-8%] right-[-7%] h-auto w-[103%] max-w-none object-contain sm:right-[-3%] md:bottom-[-2%] md:right-[-6%] md:w-[108%] lg:right-[-4%] lg:w-[105%]"
                 style={{
                   mixBlendMode: "multiply",
