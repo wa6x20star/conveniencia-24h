@@ -7,7 +7,6 @@ import { ProductCard } from "@/components/product-card";
 import { SiteFooter } from "@/components/site-footer";
 import { StoreHeader } from "@/components/store-header";
 import { useCatalog } from "@/components/catalog-provider";
-import { categories } from "@/lib/mock-data";
 import { DEFAULT_CITY, DEFAULT_STATE } from "@/lib/config";
 import { STORE_CONFIG } from "@/lib/store-config";
 
@@ -18,6 +17,13 @@ const heroHighlights = [
   { Icon: ShieldIcon, title: "Pagamento fácil", text: "Pix, cartão e dinheiro." },
   { Icon: HeadsetIcon, title: "Pedido pelo WhatsApp", text: "Fale com a gente agora." },
 ];
+
+const categoryIcons: Record<string, string> = {
+  "bebidas": "🥤", "bomboniere": "🍫", "salgadinhos": "🍿", "gelo": "🧊",
+  "higiene": "🧼", "limpeza": "🧽", "utilidades": "🏠", "pães": "🥖",
+  "salgados": "🥟", "bolos e doces": "🍰", "cafés e bebidas quentes": "☕",
+  "industrializados": "🛒", "café da manhã": "🥐", "mercearia": "🛍️",
+};
 
 export default function Home() {
   const { products } = useCatalog();
@@ -33,6 +39,15 @@ export default function Home() {
       return active && matchesCategory && matchesQuery;
     });
   }, [products, query, category]);
+
+  const availableCategories = useMemo(() => {
+    const names = [...new Set(products.filter((product) => product.active !== false).map((product) => product.category))];
+    return names.map((name) => ({
+      name,
+      slug: name.toLocaleLowerCase("pt-BR"),
+      icon: categoryIcons[name.toLocaleLowerCase("pt-BR")] || "🛍️",
+    }));
+  }, [products]);
 
   return (
     <div className="min-h-screen bg-[#F8F5EF] pb-24 md:pb-4">
@@ -122,7 +137,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="categorias" className="mt-10">
+        {availableCategories.length > 0 && <section id="categorias" className="mt-10">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
               <p className="brand-eyebrow">Encontre rápido</p>
@@ -132,7 +147,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-7">
-            {categories.map((item) => {
+            {availableCategories.map((item) => {
               const slug = item.name.toLocaleLowerCase("pt-BR");
               const selected = category === slug;
               return (
@@ -143,7 +158,7 @@ export default function Home() {
               );
             })}
           </div>
-        </section>
+        </section>}
 
         <section className="mt-8 grid gap-3 md:grid-cols-3">
           {[

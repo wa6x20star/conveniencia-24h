@@ -51,6 +51,16 @@ NEXT_PUBLIC_DEFAULT_STATE=PE
 Não publique essa instalação enquanto não houver telefone, catálogo, preços,
 estoque e responsável confirmados pela padaria.
 
+## Situação do piloto
+
+- Loja criada: `padaria-rebeca`.
+- Situação: `paused` — não fica disponível para compra.
+- Administrador da plataforma vinculado apenas para a preparação inicial.
+- Categorias prontas para o catálogo: Pães, Salgados, Bolos e Doces, Cafés e
+  Bebidas Quentes e Industrializados.
+- Produtos cadastrados: nenhum. A inclusão depende da relação confirmada pela
+  padaria, com preço, estoque e imagem autorizada quando houver.
+
 ## Segurança de acesso entre lojas
 
 As leituras administrativas de pedidos, itens, pagamentos, histórico, estoque,
