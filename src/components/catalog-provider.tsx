@@ -2,6 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { products as initialProducts, type Product } from "@/lib/mock-data";
+import { STORE_SLUG } from "@/lib/config";
+
+// Itens demonstrativos pertencem somente à instalação histórica. Uma loja nova
+// começa vazia até receber catálogo confirmado, nunca com produtos de outra loja.
+const fallbackProducts = STORE_SLUG === "piedade" ? initialProducts : [];
 
 type CatalogContextValue = {
   products: Product[];
@@ -13,7 +18,7 @@ type CatalogContextValue = {
 const CatalogContext = createContext<CatalogContextValue | null>(null);
 
 export function CatalogProvider({ children }: { children: React.ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>(fallbackProducts);
   const [loading, setLoading] = useState(true);
   const [databaseConnected, setDatabaseConnected] = useState(false);
 
@@ -29,7 +34,7 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       setDatabaseConnected(false);
-      setProducts((current) => current.length ? current : initialProducts);
+      setProducts((current) => current.length ? current : fallbackProducts);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,7 @@
 export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "piedade";
-export const STORE_WHATSAPP = (process.env.NEXT_PUBLIC_STORE_WHATSAPP || "5581995568320").replace(/\D/g, "");
+// Uma instalação nova pode ficar sem WhatsApp até a loja confirmar o número.
+// Usar `??` evita encaminhar o cliente para o número da Conveniência por engano.
+export const STORE_WHATSAPP = (process.env.NEXT_PUBLIC_STORE_WHATSAPP ?? "5581995568320").replace(/\D/g, "");
 export const DELIVERY_FEE = Number(process.env.NEXT_PUBLIC_DELIVERY_FEE || "7");
 export const DEFAULT_CITY = process.env.NEXT_PUBLIC_DEFAULT_CITY || "Jaboatão dos Guararapes";
 export const DEFAULT_STATE = process.env.NEXT_PUBLIC_DEFAULT_STATE || "PE";
