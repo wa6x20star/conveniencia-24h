@@ -51,9 +51,13 @@ NEXT_PUBLIC_DEFAULT_STATE=PE
 Não publique essa instalação enquanto não houver telefone, catálogo, preços,
 estoque e responsável confirmados pela padaria.
 
-## Próxima proteção obrigatória
+## Segurança de acesso entre lojas
 
-Antes de entregar logins a clientes, a próxima migração deve substituir as
-políticas antigas que dependem apenas do papel global do token por políticas
-que também verificam `store_memberships`. Isso protege o acesso direto à API do
-banco, além da proteção já aplicada nas rotas do site.
+As leituras administrativas de pedidos, itens, pagamentos, histórico, estoque,
+movimentações, entregadores e entregas verificam uma associação ativa em
+`store_memberships`. A regra anterior baseada somente no papel global do token
+foi removida desses caminhos.
+
+O catálogo público continua acessível apenas para lojas abertas. A criação de
+um novo administrador exige primeiro criar seu usuário e, depois, uma
+associação explícita à loja correta; não reutilize acesso de outra loja.
