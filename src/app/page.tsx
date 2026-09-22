@@ -11,11 +11,18 @@ import { DEFAULT_CITY, DEFAULT_STATE } from "@/lib/config";
 import { STORE_CONFIG } from "@/lib/store-config";
 
 const quickTerms = STORE_CONFIG.quickTerms;
-const heroHighlights = [
+const convenienceHeroHighlights = [
   { Icon: DeliveryIcon, title: "Entrega rápida", text: "Chegou, pediu, recebeu." },
   { Icon: ClockIcon, title: "Aberto 24h", text: "Sempre que você precisar." },
   { Icon: ShieldIcon, title: "Pagamento fácil", text: "Pix, cartão e dinheiro." },
   { Icon: HeadsetIcon, title: "Pedido pelo WhatsApp", text: "Fale com a gente agora." },
+];
+
+const bakeryHeroHighlights = [
+  { Icon: ClockIcon, title: "Produtos do dia", text: "Opções para diferentes momentos." },
+  { Icon: TagIcon, title: "Pães, bolos e cafés", text: "Escolhas para a sua rotina." },
+  { Icon: ShieldIcon, title: "Compra simples", text: "Informações claras em cada item." },
+  { Icon: HeadsetIcon, title: "Atendimento próximo", text: "Conte com a equipe da padaria." },
 ];
 
 const categoryIcons: Record<string, string> = {
@@ -29,6 +36,38 @@ export default function Home() {
   const { products } = useCatalog();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
+  const isBakery = STORE_CONFIG.isBakery;
+  const heroHighlights = isBakery ? bakeryHeroHighlights : convenienceHeroHighlights;
+  const bakeryQuickBenefits = [
+    { Icon: ClockIcon, title: "Para o seu dia", text: "Pães e cafés para começar bem." },
+    { Icon: DeliveryIcon, title: "Escolha com calma", text: "Monte seu pedido do seu jeito." },
+    { Icon: TagIcon, title: "Mais variedade", text: "Feitos na padaria e industrializados." },
+  ];
+  const convenienceQuickBenefits = [
+    { Icon: ClockIcon, title: "Disponível 24h", text: "Compre quando precisar." },
+    { Icon: DeliveryIcon, title: "Entrega rápida", text: "Fluxo pensado para agilidade." },
+    { Icon: TagIcon, title: "Ofertas frequentes", text: "Combos e destaques da noite." },
+  ];
+  const quickBenefits = isBakery ? bakeryQuickBenefits : convenienceQuickBenefits;
+  const feature = isBakery
+    ? {
+        eyebrow: "O sabor do seu dia",
+        title: "Uma pausa gostosa começa aqui.",
+        text: "Encontre pães, cafés, salgados, bolos e opções para levar para casa.",
+        action: "Ver produtos",
+        asideEyebrow: "Padaria Rebeca",
+        asideTitle: "Feita para os momentos simples que ficam melhores à mesa.",
+        asideText: "Uma seleção prática de itens feitos na padaria e produtos industrializados para a sua rotina.",
+      }
+    : {
+        eyebrow: "Combo da noite",
+        title: "Filme + snacks sem sair de casa.",
+        text: "Refrigerante, chocolate e salgadinho em uma seleção rápida para a madrugada.",
+        action: "Montar pedido",
+        asideEyebrow: "Compra recorrente",
+        asideTitle: "Pedir novamente vai ser ainda mais rápido.",
+        asideText: "A estrutura está preparada para repetir pedidos anteriores e ajustar somente o necessário.",
+      };
 
   const visibleProducts = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("pt-BR");
@@ -57,24 +96,24 @@ export default function Home() {
         <section className="relative overflow-visible rounded-[2rem] bg-[#F9F6F2]">
           <div className="relative min-h-[610px] overflow-hidden rounded-[2rem] md:min-h-[650px] lg:min-h-[690px]">
             <div className="relative z-20 max-w-[690px] px-6 pb-[310px] pt-12 sm:px-8 md:w-[53%] md:px-10 md:pb-40 md:pt-16 lg:px-12 lg:pt-20">
-              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#C6A75E] px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.22em] text-[#1F2A44]">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--store-accent)] px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.22em] text-[var(--store-primary)]">
                 <ClockIcon className="size-4" /> {STORE_CONFIG.serviceLabel}
               </span>
 
-              <h1 className="mt-7 text-[3.5rem] font-extrabold leading-[0.92] tracking-[-.065em] text-[#1F2A44] sm:text-[4.2rem] md:text-[4.5rem] lg:text-[5.35rem]">
+              <h1 className="mt-7 text-[3.5rem] font-extrabold leading-[0.92] tracking-[-.065em] text-[var(--store-primary)] sm:text-[4.2rem] md:text-[4.5rem] lg:text-[5.35rem]">
                 {STORE_CONFIG.heroTitle} <br />
-                <span className="text-[#C6A75E]">{STORE_CONFIG.heroHighlight}</span>
+                <span className="text-[var(--store-accent)]">{STORE_CONFIG.heroHighlight}</span>
               </h1>
 
               <p className="mt-6 max-w-[620px] text-base font-medium leading-7 text-[#393731] sm:text-[1.05rem] lg:text-[1.12rem]">
-                {STORE_CONFIG.heroDescription} <strong className="font-extrabold text-[#1F2A44]">em {DEFAULT_CITY} e região.</strong>
+                {STORE_CONFIG.heroDescription} <strong className="font-extrabold text-[var(--store-primary)]">em {DEFAULT_CITY} e região.</strong>
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <a href="#mais-vendidos" className="brand-btn-primary h-14 px-7 text-sm uppercase tracking-[.08em]">
                   Fazer pedido <ArrowIcon className="size-4" />
                 </a>
-                <a href="#categorias" className="inline-flex h-14 items-center justify-center rounded-2xl border border-[#1F2A44]/30 bg-white/75 px-7 text-sm font-extrabold uppercase tracking-[.08em] text-[#1F2A44] backdrop-blur-sm transition hover:border-[#C6A75E] hover:text-[#A88A45]">
+                <a href="#categorias" className="inline-flex h-14 items-center justify-center rounded-2xl border border-[var(--store-primary)]/30 bg-white/75 px-7 text-sm font-extrabold uppercase tracking-[.08em] text-[var(--store-primary)] backdrop-blur-sm transition hover:border-[var(--store-accent)] hover:text-[var(--store-accent-dark)]">
                   Ver categorias
                 </a>
               </div>
@@ -105,7 +144,7 @@ export default function Home() {
                     className="brand-input h-[58px] w-full rounded-2xl border-[#E5D8C0] bg-white pl-12 pr-28 text-sm font-semibold placeholder:text-[#9A9186] sm:pr-32"
                     placeholder="O que você precisa agora?"
                   />
-                  <button className="absolute right-2 top-1/2 inline-flex h-11 -translate-y-1/2 items-center rounded-2xl bg-[#1F2A44] px-5 text-sm font-bold text-white transition hover:bg-[#162038]">
+                  <button className="absolute right-2 top-1/2 inline-flex h-11 -translate-y-1/2 items-center rounded-2xl bg-[var(--store-primary)] px-5 text-sm font-bold text-white transition hover:opacity-90">
                     Buscar
                   </button>
                 </label>
@@ -125,11 +164,11 @@ export default function Home() {
           <div className="relative z-40 mt-3 grid gap-0 overflow-hidden rounded-[1.6rem] border border-[#E8DCC8] bg-white shadow-[0_18px_50px_rgba(31,42,68,.08)] sm:grid-cols-2 xl:grid-cols-4">
             {heroHighlights.map(({ Icon, title, text }, index) => (
               <div key={title} className={`flex items-center gap-3 p-5 ${index ? "border-t border-[#EEE5D8] sm:border-t-0 sm:border-l" : ""} ${index === 2 ? "sm:border-l-0 xl:border-l" : ""}`}>
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#F4ECDF] text-[#1F2A44]">
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-[#F4ECDF] text-[var(--store-primary)]">
                   <Icon className="size-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="font-display text-[15px] font-bold text-[#1F2A44]">{title}</p>
+                  <p className="font-display text-[15px] font-bold text-[var(--store-primary)]">{title}</p>
                   <p className="mt-0.5 truncate text-xs font-medium text-[#736C61]">{text}</p>
                 </div>
               </div>
@@ -161,11 +200,7 @@ export default function Home() {
         </section>}
 
         <section className="mt-8 grid gap-3 md:grid-cols-3">
-          {[
-            { Icon: ClockIcon, title: "Disponível 24h", text: "Compre quando precisar." },
-            { Icon: DeliveryIcon, title: "Entrega rápida", text: "Fluxo pensado para agilidade." },
-            { Icon: TagIcon, title: "Ofertas frequentes", text: "Combos e destaques da noite." },
-          ].map(({ Icon, title, text }) => (
+          {quickBenefits.map(({ Icon, title, text }) => (
             <div key={title} className="brand-card flex items-center gap-3 p-4">
               <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#F4ECDF] text-[#A88A45]"><Icon className="size-6" /></span>
               <div><p className="font-display text-sm font-bold text-[#1F2A44]">{title}</p><p className="mt-0.5 text-xs font-medium text-[#777066]">{text}</p></div>
@@ -190,18 +225,18 @@ export default function Home() {
         </section>
 
         <section id="ofertas" className="mt-10 grid gap-4 md:grid-cols-[1.15fr_.85fr]">
-          <div className="brand-grid relative overflow-hidden rounded-[2rem] bg-[#1F2A44] p-7 text-white md:p-8">
-            <div className="absolute right-[-50px] top-[-60px] size-48 rounded-full border-[34px] border-[#C6A75E]/18" />
-            <p className="brand-eyebrow !text-[#C6A75E]">Combo da noite</p>
-            <h3 className="mt-2 max-w-md text-3xl font-extrabold leading-tight">Filme + snacks sem sair de casa.</h3>
-            <p className="mt-3 max-w-md text-sm font-medium leading-6 text-[#E8DCC8]">Refrigerante, chocolate e salgadinho em uma seleção rápida para a madrugada.</p>
-            <a href="#mais-vendidos" className="brand-btn-primary mt-5 h-11 px-5 text-[10px] uppercase">Montar pedido <ArrowIcon className="size-4" /></a>
+          <div className="brand-grid relative overflow-hidden rounded-[2rem] bg-[var(--store-primary)] p-7 text-white md:p-8">
+            <div className="absolute right-[-50px] top-[-60px] size-48 rounded-full border-[34px] border-[var(--store-accent)]/18" />
+            <p className="brand-eyebrow !text-[var(--store-accent)]">{feature.eyebrow}</p>
+            <h3 className="mt-2 max-w-md text-3xl font-extrabold leading-tight">{feature.title}</h3>
+            <p className="mt-3 max-w-md text-sm font-medium leading-6 text-[#E8DCC8]">{feature.text}</p>
+            <a href="#mais-vendidos" className="brand-btn-primary mt-5 h-11 px-5 text-[10px] uppercase">{feature.action} <ArrowIcon className="size-4" /></a>
           </div>
 
           <div className="rounded-[2rem] border border-[#D7C29C] bg-[#E8DCC8] p-7 md:p-8">
-            <p className="brand-eyebrow">Compra recorrente</p>
-            <h3 className="mt-2 text-2xl font-extrabold leading-tight text-[#1F2A44]">Pedir novamente vai ser ainda mais rápido.</h3>
-            <p className="mt-3 text-sm font-medium leading-6 text-[#625B52]">A estrutura está preparada para repetir pedidos anteriores e ajustar somente o necessário.</p>
+            <p className="brand-eyebrow">{feature.asideEyebrow}</p>
+            <h3 className="mt-2 text-2xl font-extrabold leading-tight text-[var(--store-primary)]">{feature.asideTitle}</h3>
+            <p className="mt-3 text-sm font-medium leading-6 text-[#625B52]">{feature.asideText}</p>
           </div>
         </section>
       </main>

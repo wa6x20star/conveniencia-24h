@@ -3,12 +3,20 @@ import { ClockIcon, DeliveryIcon, HeadsetIcon, ShieldIcon, TagIcon } from "@/com
 import { BrandLogo } from "@/components/brand-logo";
 import { STORE_CONFIG } from "@/lib/store-config";
 
-const benefits = [
+const convenienceBenefits = [
   { icon: ClockIcon, title: "Aberto sempre", text: "Compre a qualquer hora do dia ou da noite." },
   { icon: DeliveryIcon, title: "Entrega rápida", text: "Seu pedido chega rápido, direto na sua porta." },
   { icon: ShieldIcon, title: "Compra segura", text: "Fluxo simples, confiável e transparente." },
   { icon: TagIcon, title: "Ofertas todos os dias", text: "Promoções e novidades selecionadas para você." },
   { icon: HeadsetIcon, title: "Atendimento humano", text: "Fale diretamente com a loja quando precisar." },
+];
+
+const bakeryBenefits = [
+  { icon: ClockIcon, title: "Produtos do dia", text: "Pães, bolos e opções para a sua rotina." },
+  { icon: DeliveryIcon, title: "Retirada e pedido", text: "Escolha seus itens com praticidade." },
+  { icon: ShieldIcon, title: "Compra simples", text: "Informações claras em cada pedido." },
+  { icon: TagIcon, title: "Variedade", text: "Feitos na padaria e industrializados." },
+  { icon: HeadsetIcon, title: "Atendimento", text: "Conte com a equipe quando precisar." },
 ];
 
 function LockIcon({ className = "size-3" }: { className?: string }) {
@@ -21,15 +29,16 @@ function LockIcon({ className = "size-3" }: { className?: string }) {
 }
 
 export function SiteFooter() {
+  const benefits = STORE_CONFIG.isBakery ? bakeryBenefits : convenienceBenefits;
   return (
     <footer className="mx-auto mt-12 max-w-6xl px-4 pb-8 md:px-6">
-      <div className="overflow-hidden rounded-[2rem] bg-[#1F2A44] text-white shadow-[0_22px_55px_rgba(31,42,68,.18)]">
+      <div className="overflow-hidden rounded-[2rem] bg-[var(--store-primary)] text-white shadow-[0_22px_55px_rgba(31,42,68,.18)]">
         <div className="grid md:grid-cols-5">
           {benefits.map(({ icon: BenefitIcon, title, text }, index) => (
             <div key={title} className={`flex gap-3 p-5 md:min-h-36 md:flex-col md:justify-center ${index > 0 ? "border-t border-white/10 md:border-l md:border-t-0" : ""}`}>
-              <BenefitIcon className="size-8 shrink-0 text-[#C6A75E]" />
+              <BenefitIcon className="size-8 shrink-0 text-[var(--store-accent)]" />
               <div>
-                <p className="font-display text-sm font-bold text-[#C6A75E]">{title}</p>
+                <p className="font-display text-sm font-bold text-[var(--store-accent)]">{title}</p>
                 <p className="mt-1 text-xs leading-5 text-[#E8DCC8]">{text}</p>
               </div>
             </div>

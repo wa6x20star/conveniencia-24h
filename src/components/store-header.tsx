@@ -8,16 +8,19 @@ import { STORE_CONFIG } from "@/lib/store-config";
 
 export function StoreHeader() {
   const { totalItems } = useCart();
+  const isBakery = STORE_CONFIG.isBakery;
+  const secondaryLinks = isBakery
+    ? ["Produtos do dia", "Pães, bolos e cafés"]
+    : ["Entrega rápida", "Compra simples"];
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#E8DCC8] bg-[#fffdf9]/96 backdrop-blur-xl">
-      <div className="hidden bg-[#1F2A44] text-[#F7F2E9] md:block">
+      <div className="hidden bg-[var(--store-primary)] text-[#F7F2E9] md:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 text-[10px] font-bold tracking-wide">
-          <span className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-[#C6A75E]" /> {STORE_CONFIG.serviceLabel.toUpperCase()}</span>
+          <span className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-[var(--store-accent)]" /> {STORE_CONFIG.serviceLabel.toUpperCase()}</span>
           <div className="flex items-center gap-6 text-[#E8DCC8]">
-            <span>Entrega rápida</span>
-            <span>Compra simples</span>
-            <Link href="/pedido" className="transition hover:text-[#C6A75E]">Acompanhar pedido</Link>
+            {secondaryLinks.map((link) => <span key={link}>{link}</span>)}
+            <Link href="/pedido" className="transition hover:text-[var(--store-accent)]">Acompanhar pedido</Link>
           </div>
         </div>
       </div>
@@ -46,12 +49,12 @@ export function StoreHeader() {
 
         <Link
           href="/carrinho"
-          className="relative grid size-11 shrink-0 place-items-center rounded-2xl bg-[#1F2A44] text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#151D31]"
+          className="relative grid size-11 shrink-0 place-items-center rounded-2xl bg-[var(--store-primary)] text-white shadow-sm transition hover:-translate-y-0.5 hover:opacity-90"
           aria-label="Abrir carrinho"
         >
           <CartIcon className="size-5" />
           {totalItems > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-[#C6A75E] text-[9px] font-extrabold text-[#1F2A44] ring-2 ring-[#fffdf9]">
+            <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-[var(--store-accent)] text-[9px] font-extrabold text-[var(--store-primary)] ring-2 ring-[#fffdf9]">
               {totalItems > 9 ? "9+" : totalItems}
             </span>
           )}
